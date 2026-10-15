@@ -25624,6 +25624,24 @@ code {
   background: #5050b2;
 }
 
+.card.card-blue-1 {
+  background: #03256C;
+  color: #ffffff;
+}
+
+.card.card-blue-1:hover {
+  background: #07369A;
+}
+
+.card.card-blue-2 {
+  background: #1768AC;
+  color: #ffffff;
+}
+
+.card.card-blue-2:hover {
+  background: #0D5087;
+}
+
 .card.card-light-blue {
   background: #7978E9;
   color: #ffffff;
@@ -26962,7 +26980,6 @@ dl li {
 .table td img {
   width: 50px;
   height: 50px;
-  border-radius: 10%;
   align-items: center;
 }
 
@@ -27041,7 +27058,7 @@ dl li {
 
 .list-wrapper {
   height: 100%;
-  max-height: 390px;
+  max-height: 500px;
   overflow: scroll;
 }
 
@@ -29345,7 +29362,7 @@ table.dataTable tbody td.select-checkbox:after {
   }
 
   .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini {
-    display: inline-block;
+    display: flex;
   }
 
   .navbar-collapse {

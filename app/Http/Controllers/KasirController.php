@@ -7,6 +7,8 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
+use charlieuki\ReceiptPrinter\ReceiptPrinter as ReceiptPrinter;
 
 class KasirController extends Controller
 {
@@ -51,7 +53,7 @@ class KasirController extends Controller
         // Process each product (e.g., save the order to the database)
 
         $order = Order::create([
-            'order_date' => today(),
+            'order_date' => now(),
         ]);
 
         foreach ($products as $product) {
@@ -76,12 +78,12 @@ class KasirController extends Controller
                         'message' => 'Insufficient stock for product: ' . $existingProduct->product_name
                     ], 400); // 400 Bad Request
                 }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient stock for product: ' . $existingProduct->product_name
+                ], 400);
             }
-
-            dump($order);
-            dump($idProduct);
-            dump($quantityProduct);
-            dd($priceProduct);
 
             $orderdetail = OrderDetail::create([
                 'order_id' => $order->order_id,
@@ -90,17 +92,36 @@ class KasirController extends Controller
                 'unit_price' => $priceProduct,
             ]);
 
-            $totalAmount += $priceProduct;
+            $totalAmount += $quantityProduct * $priceProduct;
+
+            $orderDetails[] = [
+                'product_name' => $existingProduct->product_name,
+                'quantity' => $quantityProduct,
+                'unit_price' => $priceProduct,
+                'total_price' => $quantityProduct * $priceProduct,
+            ];
         }
 
         $payment = Payment::create([
             'order_id' => $order->order_id,
-            'payment_date' => today(),
+            'payment_date' => now(),
             'payment_amount' => $totalAmount,
             'payment_method' => $paymentMethod,
         ]);
 
+        $receiptData = [
+            'store_name' => 'My Store Name',
+            'store_address' => '123 Example St, City, Country',
+            'order_id' => $order->order_id,
+            'order_date' => $order->order_date,
+            'payment_method' => $paymentMethod,
+            'total_amount' => $totalAmount,
+            'order_details' => $orderDetails,
+        ];
+
         // Return a JSON response indicating success
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'receipt' => $receiptData,]);
     }
 }

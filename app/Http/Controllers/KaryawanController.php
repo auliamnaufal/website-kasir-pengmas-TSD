@@ -7,22 +7,39 @@ use App\Models\User;
 
 class KaryawanController extends Controller
 {
-    public function index() {
-        return view('contents.pegawai');
+    // Menampilkan daftar karyawan
+    public function index()
+    {
+        // Mengambil semua data karyawan dengan role 'karyawan'
+        $karyawans = User::where('role', 'karyawan')->get();
+
+        // Mengirim data ke view
+        return view('contents.pegawai', compact('karyawans'));
     }
 
-    public function create() {
-        return view('contents.create'); // Ganti dengan path view yang sesuai
+    // Menampilkan halaman form untuk membuat karyawan baru
+    public function create()
+    {
+        return view('contents.create');
     }
-    
-    public function store(Request $request) {
+
+    // Menyimpan data karyawan baru
+    public function store(Request $request)
+    {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => [
+                'required',
+                'email',
+                'unique:users',
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/', // Hanya izinkan email dengan domain @gmail.com
+            ],
             'password' => 'required|min:8|confirmed',
+        ], [
+            'email.regex' => 'Email harus menggunakan domain @gmail.com',
         ]);
 
-        // Buat akun karyawan baru
+        // Membuat akun karyawan baru
         User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
@@ -30,6 +47,19 @@ class KaryawanController extends Controller
             'role' => 'karyawan',
         ]);
 
-        return redirect()->route('pegawai.index')->with('success', 'Akun karyawan berhasil dibuat.');
+        // Redirect ke halaman index dengan pesan sukses
+        return redirect()->route('karyawan.index')->with('success', 'Akun karyawan berhasil dibuat.');
+    }
+
+    // Menghapus data karyawan
+    public function destroy($email)
+    {
+        // Mencari karyawan berdasarkan ID
+        $karyawan = User::where('email', $email)->firstOrFail();
+
+        // Menghapus karyawan
+        $karyawan->delete();
+
+        return redirect()->route('karyawan.index')->with('success', 'Karyawan berhasil dihapus.');
     }
 }

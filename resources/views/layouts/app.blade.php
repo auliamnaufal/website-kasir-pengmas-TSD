@@ -13,6 +13,34 @@
     <link rel="stylesheet" href="{{ asset('assets/vendors/mdi/css/materialdesignicons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" />
+    <style>
+        .scrollable-table-container {
+            max-height: 400px;
+            /* Adjust height as needed */
+            overflow-y: auto;
+        }
+
+        .quantity-input {
+            width: 100%;
+            max-width: 100px;
+            /* Set a maximum width to prevent it from being too wide */
+            padding: 5px;
+            text-align: center;
+        }
+
+        @media (max-width: 576px) {
+            .quantity-input {
+                max-width: 70px;
+                /* Adjust the width for smaller screens */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quantity-input {
+                max-width: 80px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -20,10 +48,10 @@
         <!-- Navbar -->
         <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-                <a class="navbar-brand brand-logo me-10" href="{{ url('/') }}">
+                <a class="navbar-brand brand-logo me-10" href="{{ auth()->user()->home_route ?? route('login') }}">
                     <img src="{{ asset('assets/images/logo.png') }}" class="me-10" alt="logo" />
                 </a>
-                <a class="navbar-brand brand-logo-mini" href="{{ url('/') }}">
+                <a class="navbar-brand brand-logo-mini" href="{{ auth()->user()->home_route ?? route('login') }}">
                     <img src="{{ asset('assets/images/logo-mini.png') }}" alt="logo" />
                 </a>
             </div>
@@ -33,50 +61,17 @@
                 </button>
                 <ul class="navbar-nav mr-lg-2">
                     <li class="nav-item nav-search d-none d-lg-block">
-                        <div class="input-group">
-                            <div class="input-group-prepend hover-cursor" id="navbar-search-icon">
-                                <span class="input-group-text" id="search">
-                                    <i class="icon-search"></i>
-                                </span>
-                            </div>
-                            <input type="text" class="form-control" id="navbar-search-input" placeholder="Search now"
-                                aria-label="search" aria-describedby="search">
-                        </div>
                     </li>
                 </ul>
                 <ul class="navbar-nav navbar-nav-right">
                     <!-- Notification dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#"
-                            data-bs-toggle="dropdown">
-                            <i class="icon-bell mx-0"></i>
-                            <span class="count"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list"
-                            aria-labelledby="notificationDropdown">
-                            <p class="mb-0 font-weight-normal float-left dropdown-header">Notifications</p>
-                            <a class="dropdown-item preview-item">
-                                <div class="preview-thumbnail">
-                                    <div class="preview-icon bg-success">
-                                        <i class="ti-info-alt mx-0"></i>
-                                    </div>
-                                </div>
-                                <div class="preview-item-content">
-                                    <h6 class="preview-subject font-weight-normal">Application Error</h6>
-                                    <p class="font-weight-light small-text mb-0 text-muted"> Just now </p>
-                                </div>
-                            </a>
-                            <!-- Other notifications -->
-                        </div>
-                    </li>
                     <!-- Profile dropdown -->
                     <li class="nav-item nav-profile dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
-                            <img src="{{ asset('assets/images/faces/face28.jpg') }}" alt="profile" />
+                            <i class="fa fa-user" style="font-size: 1.5rem;"></i>
                         </a>
+
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-                            <a class="dropdown-item">
-                                <i class="ti-settings text-primary"></i> Pengaturan </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="dropdown-item">
@@ -102,7 +97,7 @@
                     @if(Auth::user()->role === 'admin')
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                            <i class="icon-grid menu-icon"></i>
+                            <i class="icon-grid menu-icon mdi mdi-home"></i>
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
@@ -113,20 +108,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('products.stock') }}">
-                            <i class="icon-grid menu-icon mdi mdi-home-variant"></i>
-                            <span class="menu-title">Kelola Stok</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('products.index') }}">
                             <i class="icon-columns menu-icon"></i>
                             <span class="menu-title">Kelola Produk</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.manage.pegawai') }}">
-                            <i class="icon-head menu-icon"></i>
+                        <a class="nav-link" href="{{ route('karyawan.index') }}">
+                            <i class="icon-head menu-icon mdi mdi-account-multiple"></i>
                             <span class="menu-title">Kelola Pegawai</span>
                         </a>
                     </li>
@@ -138,12 +127,6 @@
                         <a class="nav-link" href="{{ route('kasir.index') }}">
                             <i class="icon-grid menu-icon mdi mdi-cash-multiple"></i>
                             <span class="menu-title">Kasir</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('products.stock') }}">
-                            <i class="icon-grid menu-icon mdi mdi-home-variant"></i>
-                            <span class="menu-title">Kelola Stok</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -178,7 +161,8 @@
     </div>
 
     <!-- JS Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <script src="{{ asset('assets/chart.js') }}"></script>
     <script src="{{ asset('assets/vendors/js/vendor.bundle.base.js') }}"></script>
     <script src="{{ asset('assets/vendors/chart.js/chart.umd.js') }}"></script>
     <script src="{{ asset('assets/js/off-canvas.js') }}"></script>

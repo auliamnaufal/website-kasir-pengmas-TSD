@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <title>Modern Login Page | AsmrProg</title>
+    <title>Kasir UMKM TSD</title>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> -->
+    <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
@@ -17,12 +18,11 @@
         }
 
         body {
-            background-color: #c9d6ff;
             background: linear-gradient(to right, #e2e2e2, #c9d6ff);
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .container {
@@ -34,6 +34,7 @@
             width: 768px;
             max-width: 100%;
             min-height: 480px;
+            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
         }
 
         .container p {
@@ -41,14 +42,16 @@
             line-height: 20px;
             letter-spacing: 0.3px;
             margin: 20px 0;
+            color: #333;
         }
 
         .container span {
             font-size: 12px;
+            color: #666;
         }
 
         .container a {
-            color: #333;
+            color: #512da8;
             font-size: 13px;
             text-decoration: none;
             margin: 15px 0 10px;
@@ -66,11 +69,17 @@
             text-transform: uppercase;
             margin-top: 10px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
         .container button.hidden {
             background-color: transparent;
             border-color: #fff;
+            color: #fff;
+        }
+
+        .container button:hover:not(.hidden) {
+            background-color: #381880;
         }
 
         .container form {
@@ -81,6 +90,7 @@
             flex-direction: column;
             padding: 0 40px;
             height: 100%;
+            transition: padding 0.3s ease;
         }
 
         .container input {
@@ -92,6 +102,12 @@
             border-radius: 8px;
             width: 100%;
             outline: none;
+            transition: background-color 0.3s ease;
+            color: #333;
+        }
+
+        .container input:focus {
+            background-color: #ddd;
         }
 
         .form-container {
@@ -108,6 +124,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: #fff;
         }
 
         .container.active .sign-in {
@@ -130,7 +147,8 @@
 
         h1 {
             margin-bottom: 20px;
-            /* Menambahkan margin bawah */
+            color: #333;
+            font-size: 28px;
         }
 
         .logo-image {
@@ -141,7 +159,6 @@
         }
 
         @keyframes move {
-
             0%,
             49.99% {
                 opacity: 0;
@@ -161,13 +178,22 @@
 
         .social-icons a {
             border: 1px solid #ccc;
-            border-radius: 20%;
+            border-radius: 50%;
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            margin: 0 3px;
+            margin: 0 5px;
             width: 40px;
             height: 40px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            color: #512da8;
+            font-size: 18px;
+        }
+
+        .social-icons a:hover {
+            background-color: #512da8;
+            color: #fff;
+            border-color: #512da8;
         }
 
         .toggle-container {
@@ -194,7 +220,6 @@
             color: #fff;
             position: relative;
             left: -100%;
-            height: 100%;
             width: 200%;
             transform: translateX(0);
             transition: all 0.6s ease-in-out;
@@ -215,7 +240,6 @@
             padding: 0 30px;
             text-align: center;
             top: 0;
-            transform: translateX(0);
             transition: all 0.6s ease-in-out;
         }
 
@@ -239,71 +263,127 @@
         .error-message {
             color: red;
             margin: 15px 0;
+            width: 100%;
+            text-align: center;
         }
 
         /* Media Queries for responsiveness below 700px */
         @media (max-width: 700px) {
             body {
-                height: 500px;
                 padding: 20px;
                 display: flex;
                 align-items: center;
-                /* Center items vertically */
                 justify-content: center;
-                /* Center items horizontally */
+                background: linear-gradient(to right, #e2e2e2, #c9d6ff);
             }
 
             .container {
-                width: 70%;
-                min-height: 70%;
-                padding: 10px;
+                width: 100%;
+                max-width: 400px;
+                min-height: auto;
+                padding: 20px;
                 display: flex;
-                /* Make container a flex container */
                 flex-direction: column;
-                /* Stack items vertically */
                 justify-content: center;
-                /* Center children vertically */
+                background-color: rgba(255, 255, 255, 0.95); /* Slight transparency */
+                backdrop-filter: none;
+                border-radius: 20px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                transition: background-color 0.3s ease;
             }
 
             .toggle-container {
-                display: none;
-                /* Hides the toggle panels in smaller screens */
+                display: none; /* Hide toggle container on mobile */
             }
 
             .form-container {
                 position: relative;
                 width: 100%;
-                height: 100%;
+                height: auto;
                 transition: none;
                 display: flex;
-                /* Make form container a flex container */
                 flex-direction: column;
-                /* Stack items vertically */
                 justify-content: center;
-                /* Center children vertically */
                 align-items: center;
-                /* Center children horizontally */
+                background-color: transparent;
             }
 
             .sign-in,
             .sign-up {
                 width: 100%;
                 left: 0;
+                transform: translateX(0); /* Reset transform */
+                opacity: 1; /* Ensure visibility */
+                z-index: 2;
             }
 
-            .container.active .sign-in {
-                transform: translateX(0);
-                /* Disable transform for smaller screens */
-            }
-
+            .container.active .sign-in,
             .container.active .sign-up {
                 transform: translateX(0);
-                /* Disable transform for smaller screens */
             }
 
             .container form {
-                padding: 0 20px;
-                height: 100%;
+                padding: 20px;
+                width: 100%;
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Adjust font sizes for mobile */
+            .container h1 {
+                font-size: 24px;
+                color: #333;
+            }
+
+            .container p {
+                font-size: 14px;
+                text-align: center;
+                margin: 10px 0;
+                color: #555;
+            }
+
+            .container a {
+                font-size: 13px;
+                margin: 10px 0;
+                color: #512da8;
+            }
+
+            .container input {
+                background-color: #e2e2e2;
+                font-size: 14px;
+                padding: 12px 20px;
+                margin: 10px 0;
+                color: #333;
+            }
+
+            .container button {
+                font-size: 14px;
+                padding: 12px 20px;
+                width: 100%;
+                background-color: #512da8;
+            }
+
+            .social-icons {
+                margin: 20px 0;
+            }
+
+            .social-icons a {
+                width: 35px;
+                height: 35px;
+            }
+
+            .social-icons a i {
+                font-size: 18px;
+            }
+
+            .logo-image {
+                max-width: 150px;
+            }
+
+            .error-message {
+                font-size: 14px;
+                color: red;
             }
         }
     </style>
@@ -314,21 +394,21 @@
     <div class="container" id="container">
         <!-- Panel for image in "Welcome Back" -->
         <div class="form-container sign-in">
-            <img src="/assets/images/logo.png" alt="Logo" class="logo-image">
+            <img src="/assets/images/loginbig.png" alt="Logo" class="logo-image" style="height: 300px; width: auto;">
         </div>
 
         <!-- Toggle Panels -->
         <div class="toggle-container">
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
-                    <h1>Welcome Back!</h1>
-                    <p>"Jangan pernah berhenti berusaha, karena setiap langkah kecil yang kamu ambil, membawa kamu lebih dekat ke tujuan besar."</p>
-                    <button class="hidden" id="login">Back</button>
+                    <h1 style="color: #fff;">Selamat Datang</h1>
+                    <p style="color: #fff;">"Optimalkan usaha Anda dengan Kasir UMKM"</p>
+                    <button class="hidden" id="login">Kembali</button>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Hello, Sobat UMKM!</h1>
-                    <p>Selamat datang di KasirCerdas! Selamat bekerja dan jangan lupa bahagia!</p>
-                    <button class="hidden" id="Supported">Get Started</button>
+                    <h1 style="color: #fff;">Hello, Sobat UMKM!</h1>
+                    <p style="color: #fff;">Selamat datang di Kasir UMKM! Selamat bekerja dan jangan lupa bahagia!</p>
+                    <button class="hidden" id="Supported">Mulai</button>
                 </div>
             </div>
         </div>
@@ -358,13 +438,15 @@
         const supportedBtn = document.getElementById('Supported');
         const loginBtn = document.getElementById('login');
 
-        supportedBtn.addEventListener('click', () => {
-            container.classList.add("active");
-        });
+        if (supportedBtn && loginBtn) {
+            supportedBtn.addEventListener('click', () => {
+                container.classList.add("active");
+            });
 
-        loginBtn.addEventListener('click', () => {
-            container.classList.remove("active");
-        });
+            loginBtn.addEventListener('click', () => {
+                container.classList.remove("active");
+            });
+        }
     </script>
 </body>
 

@@ -6,9 +6,24 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
+    public function search(Request $request)
+    {
+    // Get the search query
+    $searchTerm = $request->get('searchTerm');
+
+    // Ensure that the search term is treated as a string for product_id comparison
+    $products = Product::where('product_name', 'LIKE', '%' . $searchTerm . '%')
+        ->orWhereRaw("CAST(product_id AS CHAR) LIKE ?", ['%' . $searchTerm . '%'])
+        ->get();
+
+    // Return the search result as JSON
+    return response()->json($products);
+    }
+
     // Menampilkan halaman produk
     public function index(Request $request)
     {
@@ -26,6 +41,8 @@ class ProductController extends Controller
         // Ambil semua kategori untuk form tambah produk
         $categories = Category::all();
 
+        $categories = Category::with('products')->get();
+
         return view('contents.produk', compact('products', 'categories', 'page', 'totalPages'));
     }
 
@@ -37,8 +54,8 @@ class ProductController extends Controller
             'product_name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,category_id',
             'quantity_in_stock' => 'required|integer',
-            'harga_beli' => 'required|numeric',
-            'harga_jual' => 'required|numeric',
+            'harga_beli' => 'required|integer|min:0',
+            'harga_jual' => 'required|integer|min:0',
             'gambar' => 'nullable|image|max:2048',
             'deskripsi' => 'nullable|string'
         ]);
@@ -77,6 +94,7 @@ class ProductController extends Controller
             'gambar' => 'nullable|image|max:2048',
             'deskripsi' => 'nullable|string'
         ]);
+
     
         // Temukan produk berdasarkan ID
         $product = Product::findOrFail($id);
@@ -91,6 +109,9 @@ class ProductController extends Controller
     
         // Ambil semua data dari request
         $data = $request->all();
+
+        $data['harga_beli'] = (float) str_replace(['.', ','], ['', '.'], $request->harga_beli);
+        $data['harga_jual'] = (float) str_replace(['.', ','], ['', '.'], $request->harga_jual);
     
         // Jika ada file gambar yang diupload
         if ($request->hasFile('gambar')) {
@@ -142,18 +163,27 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
-
-
-
-    // Fungsi untuk menampilkan halaman kelola stok
-    public function manageStock()
+    public function destroyCategory($category_id)
     {
-        // Ambil semua produk
-        $products = Product::all();
-
-        // Return ke view stok dengan data produk
-        return view('contents.stok', compact('products'));
+        // Temukan kategori berdasarkan ID
+        $category = Category::find($category_id);
+    
+        // Jika kategori tidak ditemukan, kembalikan respons error
+        if (!$category) {
+            return response()->json(['error' => 'Kategori tidak ditemukan.'], 404);
+        }
+    
+        // Periksa apakah kategori memiliki produk
+        if ($category->products()->count() > 0) {
+            return response()->json(['error' => 'Tidak dapat menghapus kategori ini karena masih ada produk yang terkait.'], 400);
+        }
+    
+        // Hapus kategori
+        $category->delete();
+    
+        return response()->json(['success' => 'Kategori berhasil dihapus.']);
     }
+    
     
     public function updateStock(Request $request, $id)
     {
@@ -161,6 +191,7 @@ class ProductController extends Controller
             'jumlah_stok' => 'required|integer|min:1',
             'mode' => 'required|in:tambah,kurang',
         ]);
+
     
         // Temukan produk berdasarkan ID
         $product = Product::findOrFail($id);
@@ -172,19 +203,48 @@ class ProductController extends Controller
             $product->quantity_in_stock -= $request->jumlah_stok;
     
             // Pastikan stok tidak negatif
-            if ($product->quantity_in_stock < 0) {
-                $product->quantity_in_stock = 0;
-            }
-    
+            $product->quantity_in_stock = max(0, $product->quantity_in_stock);
             $message = 'Stok berhasil dikurangi.';
         }
     
         $product->save();
     
-        // Redirect dengan pesan sukses
-        return redirect()->route('products.stock')->with('success', $message);
+        // Redirect dengan pesan sukses ke produk.index
+        return redirect()->route('products.index')->with('success', $message);
+    }
+    public function printBarcode(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'product_id' => 'required',
+            'print_quantity' => 'required|integer|min:1',
+        ]);
+    
+        // Ambil produk berdasarkan product_id
+        $product = Product::findOrFail($request->product_id);
+    
+        // Hitung jumlah barcode berdasarkan jumlah lembar (pastikan bilangan bulat)
+        $lembar = (int) floor($request->print_quantity); // Pastikan angka bulat (tidak ada float)
+        $quantity = $lembar * 44; // 1 lembar = 44 barcode
+    
+        // Render view untuk menampilkan barcode
+        return view('barcode_preview', compact('product', 'quantity'));
     }
     
     
-    
+    // public function printBarcode(Request $request)
+    // {
+    //     // Validasi input
+    //     $request->validate([
+    //         'product_id' => 'required',
+    //         'print_quantity' => 'required|integer|min:1',
+    //     ]);
+
+    //     // Ambil produk berdasarkan product_id
+    //     $product = Product::findOrFail($request->product_id);
+    //     $quantity = $request->print_quantity;
+
+    //     // Render view dengan variabel 'isPrint' sebagai tanda print preview
+    //     return view('products.index', compact('product', 'quantity'))->with('isPrint', true);
+    // }
 }

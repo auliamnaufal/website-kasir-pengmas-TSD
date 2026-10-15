@@ -23,4 +23,15 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    public function getHomeRouteAttribute()
+    {
+        switch ($this->role) {
+            case 'admin':
+                return route('admin.dashboard');
+            case 'karyawan':
+                return route('kasir.index');
+            default:
+                return route('login');
+        }
+    }
 }

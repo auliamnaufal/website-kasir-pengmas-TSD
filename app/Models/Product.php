@@ -69,7 +69,7 @@ class Product extends Model
     public function getBarcodeBase64()
     {
         $barcode = new DNS1D();
-        $barcodeBase64 = $barcode->getBarcodePNG((string)$this->product_id, 'C128', 3, 50, [0, 0, 0], true);
+        $barcodeBase64 = $barcode->getBarcodePNG((string)$this->product_id, 'C128', 3, 50, [0, 0, 0], False);
         return $barcodeBase64;
     }
 }

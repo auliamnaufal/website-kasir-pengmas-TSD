@@ -13,24 +13,28 @@ Route::post('/', [AuthController::class, 'login'])->name('login.submit');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 
-Route::get('/dashboard/laporan-harian', [DashboardController::class, 'laporanHarian']);
-Route::get('/dashboard/laporan-bulanan', [DashboardController::class, 'laporanBulanan']);
-Route::get('/dashboard/produk-laporan', [DashboardController::class, 'produkLaporan']);
+// Route::get('/dashboard/laporan', [DashboardController::class, 'index']);
+// Route::get('/dashboard/laporan-bulanan', [DashboardController::class, 'laporanBulanan']);
+// Route::get('/dashboard/produk-laporan', [DashboardController::class, 'produkLaporan']);
 
 
-Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
-Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
-Route::get('/karyawan', [KaryawanController::class, 'index'])->name('pegawai.index');
+
 
 
 Route::get('/search-products', [KasirController::class, 'search'])->name('kasir.search');
 Route::post('/kasir/proses-pembayaran', [KasirController::class, 'prosesPembayaran'])->name('kasir.prosespembayaran');
+Route::post('/kasir/cetak-struk', [KasirController::class, 'cetakStruk'])->name('kasir.cetakstruk');
 
 Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
-        Route::get('/kelola-pegawai', [AdminController::class, 'ManagePegawai'])->name('admin.manage.pegawai');
+        Route::get('/laporan-bulanan', [DashboardController::class, 'monthlyReport'])->name('admin.monthlyreport');
+        Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
+        Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
+        Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
+        Route::delete('/karyawan/{email}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
+        Route::get('/produk-terlaris', [DashboardController::class, 'getProdukTerlaris'])->name('dashboard.produkTerlaris');
     });
 
     Route::get('/kasir', function () {
@@ -45,9 +49,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/produk/{id}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/produk/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::post('/produk/category', [ProductController::class, 'storeCategory'])->name('products.category.store');
-
-        // Manajemen stok
-        Route::get('/stok', [ProductController::class, 'manageStock'])->name('products.stock');
-        Route::post('/stok/{id}', [ProductController::class, 'updateStock'])->name('products.updateStock');
+        Route::get('/produk/search', [ProductController::class, 'search'])->name('products.search');
+        Route::post('/produk/{id}/update-stock', [ProductController::class, 'updateStock'])->name('products.updateStock');
+        Route::post('/produk/print-barcode', [ProductController::class, 'printBarcode'])->name('products.printBarcode');
+        Route::delete('/produk/category/{category_id}', [ProductController::class, 'destroyCategory'])->name('products.category.destroy');
     });
 });
