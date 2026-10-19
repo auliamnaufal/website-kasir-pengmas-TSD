@@ -119,6 +119,12 @@
                             <span class="menu-title">Kelola Pegawai</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('jabatan-config.index') }}">
+                            <i class="icon-columns menu-icon mdi mdi-cog"></i>
+                            <span class="menu-title">Konfigurasi Jabatan</span>
+                        </a>
+                    </li>
                     @endif
 
                     <!-- Sidebar for Karyawan -->

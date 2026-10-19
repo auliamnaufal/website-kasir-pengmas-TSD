@@ -4,34 +4,36 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
 class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * Uses User::create() (not DB::table()->insert()) so the employee_id auto-generation
+     * hook on the model fires, same as it would for a real admin-created account.
      */
     public function run(): void
     {
-        // Insert Admin User
-        DB::table('users')->insert([
+        User::create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
-            'password' => Hash::make('password'), // Use Hash to encrypt the password
+            'password' => Hash::make('password'),
             'role' => 'admin',
-            'created_at' => now(),
-            'updated_at' => now(),
+            'nik' => '3200000000000001',
+            'jabatan' => 'Direksi',
+            'gaji' => 10000000,
         ]);
 
-        // Insert Karyawan User
-        DB::table('users')->insert([
+        User::create([
             'name' => 'Karyawan User',
             'email' => 'karyawan@example.com',
-            'password' => Hash::make('password'), // Use Hash to encrypt the password
+            'password' => Hash::make('password'),
             'role' => 'karyawan',
-            'created_at' => now(),
-            'updated_at' => now(),
+            'nik' => '3200000000000002',
+            'jabatan' => 'Staff',
+            'gaji' => 3500000,
         ]);
     }
 }

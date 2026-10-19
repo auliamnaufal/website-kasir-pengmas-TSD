@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\JabatanConfigController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
 
@@ -27,14 +29,22 @@ Route::post('/kasir/cetak-struk', [KasirController::class, 'cetakStruk'])->name(
 
 Route::middleware(['auth'])->group(function () {
 
+    // Not admin-only: reachable by any authenticated user, authorization enforced by the
+    // updateSalary Gate inside the controller (admin, or higher jabatan level than target).
+    Route::put('/karyawan/{karyawan}/gaji-jabatan', [KaryawanController::class, 'updateGajiJabatan'])->name('karyawan.update-gaji-jabatan');
+
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/laporan-bulanan', [DashboardController::class, 'monthlyReport'])->name('admin.monthlyreport');
         Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
         Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
         Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
+        Route::put('/karyawan/{karyawan}', [KaryawanController::class, 'update'])->name('karyawan.update');
         Route::delete('/karyawan/{email}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
         Route::get('/produk-terlaris', [DashboardController::class, 'getProdukTerlaris'])->name('dashboard.produkTerlaris');
+        Route::get('/jabatan-config', [JabatanConfigController::class, 'index'])->name('jabatan-config.index');
+        Route::put('/jabatan-config/{jabatanConfig}', [JabatanConfigController::class, 'update'])->name('jabatan-config.update');
+        Route::put('/piutang/{piutang}/tandai-lunas', [PiutangController::class, 'tandaiLunas'])->name('piutang.tandai-lunas');
     });
 
     Route::get('/kasir', function () {

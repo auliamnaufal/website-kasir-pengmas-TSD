@@ -22,7 +22,11 @@
         }
       } else {
         //for other url
-        if (element.attr('href').indexOf(current) !== -1) {
+        // exact pathname match, not substring — a substring match (e.g. "admin")
+        // would also light up unrelated links like /admin/karyawan while on /admin
+        var href = element.attr('href') || '';
+        var hrefPath = href.split('?')[0].split('#')[0].replace(/\/$/, '');
+        if (hrefPath !== '' && hrefPath === current.replace(/\/$/, '')) {
           element.parents('.nav-item').last().addClass('active');
           if (element.parents('.sub-menu').length) {
             element.closest('.collapse').addClass('show');
@@ -35,7 +39,7 @@
       }
     }
 
-    var current = location.pathname.split("/").slice(-1)[0].replace(/^\/|\/$/g, '');
+    var current = location.pathname;
     $('.nav li a', sidebar).each(function() {
       var $this = $(this);
       addActiveClass($this);

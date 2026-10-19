@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Piutang;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use charlieuki\ReceiptPrinter\ReceiptPrinter as ReceiptPrinter;
 
 class KasirController extends Controller
@@ -30,30 +33,49 @@ class KasirController extends Controller
     public function prosesPembayaran(Request $request)
     {
         $request->validate([
-            'payment_method' => 'required|string|in:Pembayaran Tunai,Pembayaran QRIS', // Validasi untuk payment_method
+            'payment_method' => 'required|string|in:Pembayaran Tunai,Pembayaran QRIS,Pembayaran Potong Gaji',
+            'user_id' => 'nullable|integer|exists:users,user_id|required_if:payment_method,Pembayaran Potong Gaji',
             'products' => 'required|array',
             'products.*.id' => 'required|string',
             'products.*.quantity' => 'required|integer|min:1',
             'products.*.price' => 'required|integer',
         ]);
 
-
         // Get payment method and products from request
-        $paymentMethod = $request->input('payment_method');
-        if ($paymentMethod == 'Pembayaran Tunai') {
-            $paymentMethod = 'cash';
-        } elseif ($paymentMethod == 'Pembayaran QRIS') {
-            $paymentMethod = 'credit_card';
-        }
+        $paymentMethod = match ($request->input('payment_method')) {
+            'Pembayaran Tunai' => 'cash',
+            'Pembayaran QRIS' => 'qris',
+            'Pembayaran Potong Gaji' => 'potong_gaji',
+        };
 
+        $userId = $request->input('user_id');
         $products = $request->input('products');
 
+        // Total is needed up front (before any writes) so a potong_gaji
+        // transaction can be blocked without creating the order/payment.
         $totalAmount = 0;
+        foreach ($products as $product) {
+            $totalAmount += $product['quantity'] * $product['price'];
+        }
+
+        $period = null;
+
+        if ($paymentMethod === 'potong_gaji') {
+            $period = Piutang::periodFor(now());
+            $pegawai = User::find($userId);
+
+            if (Piutang::wouldExceedLimit($pegawai, $period, $totalAmount)) {
+                throw ValidationException::withMessages([
+                    'payment_method' => 'Transaksi ditolak: melebihi batas maksimum potong gaji pegawai ini untuk periode berjalan.',
+                ]);
+            }
+        }
 
         // Process each product (e.g., save the order to the database)
 
         $order = Order::create([
             'order_date' => now(),
+            'user_id' => $userId,
         ]);
 
         foreach ($products as $product) {
@@ -92,8 +114,6 @@ class KasirController extends Controller
                 'unit_price' => $priceProduct,
             ]);
 
-            $totalAmount += $quantityProduct * $priceProduct;
-
             $orderDetails[] = [
                 'product_name' => $existingProduct->product_name,
                 'quantity' => $quantityProduct,
@@ -108,6 +128,17 @@ class KasirController extends Controller
             'payment_amount' => $totalAmount,
             'payment_method' => $paymentMethod,
         ]);
+
+        if ($paymentMethod === 'potong_gaji') {
+            Piutang::create([
+                'user_id' => $userId,
+                'source_type' => 'pembelian',
+                'source_id' => $payment->payment_id,
+                'amount' => $totalAmount,
+                'status' => 'belum_lunas',
+                'period' => $period,
+            ]);
+        }
 
         $receiptData = [
             'store_name' => 'My Store Name',
