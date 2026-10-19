@@ -6,6 +6,7 @@ use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\JabatanConfigController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
 
@@ -42,6 +43,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/produk-terlaris', [DashboardController::class, 'getProdukTerlaris'])->name('dashboard.produkTerlaris');
         Route::get('/jabatan-config', [JabatanConfigController::class, 'index'])->name('jabatan-config.index');
         Route::put('/jabatan-config/{jabatanConfig}', [JabatanConfigController::class, 'update'])->name('jabatan-config.update');
+        Route::put('/piutang/{piutang}/tandai-lunas', [PiutangController::class, 'tandaiLunas'])->name('piutang.tandai-lunas');
     });
 
     Route::get('/kasir', function () {
