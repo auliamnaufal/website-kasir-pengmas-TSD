@@ -21,6 +21,7 @@ class Product extends Model
         'harga_beli',
         'harga_jual',
         'deskripsi',
+        'kode_perkiraan',
     ];
 
     // Event saat produk sedang dibuat

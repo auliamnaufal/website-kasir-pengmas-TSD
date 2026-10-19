@@ -30,21 +30,20 @@ class KasirController extends Controller
     public function prosesPembayaran(Request $request)
     {
         $request->validate([
-            'payment_method' => 'required|string|in:Pembayaran Tunai,Pembayaran QRIS', // Validasi untuk payment_method
+            'payment_method' => 'required|string|in:Pembayaran Tunai,Pembayaran QRIS,Pembayaran Potong Gaji',
+            'user_id' => 'nullable|integer|exists:users,user_id|required_if:payment_method,Pembayaran Potong Gaji',
             'products' => 'required|array',
             'products.*.id' => 'required|string',
             'products.*.quantity' => 'required|integer|min:1',
             'products.*.price' => 'required|integer',
         ]);
 
-
         // Get payment method and products from request
-        $paymentMethod = $request->input('payment_method');
-        if ($paymentMethod == 'Pembayaran Tunai') {
-            $paymentMethod = 'cash';
-        } elseif ($paymentMethod == 'Pembayaran QRIS') {
-            $paymentMethod = 'credit_card';
-        }
+        $paymentMethod = match ($request->input('payment_method')) {
+            'Pembayaran Tunai' => 'cash',
+            'Pembayaran QRIS' => 'qris',
+            'Pembayaran Potong Gaji' => 'potong_gaji',
+        };
 
         $products = $request->input('products');
 
@@ -54,6 +53,7 @@ class KasirController extends Controller
 
         $order = Order::create([
             'order_date' => now(),
+            'user_id' => $request->input('user_id'),
         ]);
 
         foreach ($products as $product) {

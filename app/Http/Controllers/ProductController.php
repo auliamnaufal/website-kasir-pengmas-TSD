@@ -57,9 +57,10 @@ class ProductController extends Controller
             'harga_beli' => 'required|integer|min:0',
             'harga_jual' => 'required|integer|min:0',
             'gambar' => 'nullable|image|max:2048',
-            'deskripsi' => 'nullable|string'
+            'deskripsi' => 'nullable|string',
+            'kode_perkiraan' => 'nullable|string|max:255',
         ]);
-    
+
         // Cek apakah produk dengan nama yang sama sudah ada (case-insensitive)
         $productExists = Product::whereRaw('LOWER(product_name) = ?', [strtolower($request->product_name)])->exists();
     
@@ -76,7 +77,7 @@ class ProductController extends Controller
         }
     
         Product::create($data);
-    
+
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
     
@@ -92,7 +93,8 @@ class ProductController extends Controller
             'harga_beli' => 'required|numeric',
             'harga_jual' => 'required|numeric',
             'gambar' => 'nullable|image|max:2048',
-            'deskripsi' => 'nullable|string'
+            'deskripsi' => 'nullable|string',
+            'kode_perkiraan' => 'nullable|string|max:255',
         ]);
 
     
