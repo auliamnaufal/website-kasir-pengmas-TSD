@@ -40,6 +40,13 @@ class User extends Authenticatable
         });
     }
 
+    // Hierarchy level of this user's jabatan, per jabatan_configs. Missing/unconfigured
+    // jabatan is treated as the lowest rung (0), never as "unrestricted".
+    public function jabatanLevel(): int
+    {
+        return (int) (JabatanConfig::where('jabatan', $this->jabatan)->value('level') ?? 0);
+    }
+
     public function getHomeRouteAttribute()
     {
         switch ($this->role) {

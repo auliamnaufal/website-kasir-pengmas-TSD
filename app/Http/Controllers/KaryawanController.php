@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\JabatanConfig;
+use Illuminate\Support\Facades\Gate;
 
 class KaryawanController extends Controller
 {
@@ -59,6 +60,21 @@ class KaryawanController extends Controller
 
         // Redirect ke halaman index dengan pesan sukses
         return redirect()->route('karyawan.index')->with('success', 'Akun karyawan berhasil dibuat.');
+    }
+
+    // Mengubah gaji/jabatan pegawai lain (admin, atau jabatan level lebih tinggi dari target)
+    public function updateGajiJabatan(Request $request, User $karyawan)
+    {
+        Gate::authorize('updateSalary', $karyawan);
+
+        $validated = $request->validate([
+            'gaji' => 'sometimes|numeric|min:0',
+            'jabatan' => 'sometimes|string|exists:jabatan_configs,jabatan',
+        ]);
+
+        $karyawan->update($validated);
+
+        return redirect()->back()->with('success', 'Data karyawan berhasil diperbarui.');
     }
 
     // Menghapus data karyawan

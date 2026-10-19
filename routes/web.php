@@ -28,6 +28,10 @@ Route::post('/kasir/cetak-struk', [KasirController::class, 'cetakStruk'])->name(
 
 Route::middleware(['auth'])->group(function () {
 
+    // Not admin-only: reachable by any authenticated user, authorization enforced by the
+    // updateSalary Gate inside the controller (admin, or higher jabatan level than target).
+    Route::put('/karyawan/{karyawan}/gaji-jabatan', [KaryawanController::class, 'updateGajiJabatan'])->name('karyawan.update-gaji-jabatan');
+
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/laporan-bulanan', [DashboardController::class, 'monthlyReport'])->name('admin.monthlyreport');
