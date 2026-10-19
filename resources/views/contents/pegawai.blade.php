@@ -50,14 +50,65 @@
                                         <td>{{ $karyawan->gaji !== null ? number_format($karyawan->gaji, 0) : '-' }}</td>
                                         <td>{{ $karyawan->created_at->format('d-m-Y H:i') }}</td>
                                         <td>
-                                            <button 
-                                                class="btn btn-danger btn-sm" 
-                                                data-bs-toggle="modal" 
+                                            <button
+                                                class="btn btn-primary btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editModal{{ $karyawan->user_id }}">
+                                                Edit
+                                            </button>
+                                            <button
+                                                class="btn btn-danger btn-sm"
+                                                data-bs-toggle="modal"
                                                 data-bs-target="#deleteModal{{ $karyawan->id }}">
                                                 Hapus
                                             </button>
                                         </td>
                                     </tr>
+
+                                    <!-- Modal Edit Karyawan -->
+                                    <div class="modal fade" id="editModal{{ $karyawan->user_id }}" tabindex="-1" aria-labelledby="editModalLabel{{ $karyawan->user_id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <form action="{{ route('karyawan.update', $karyawan->user_id) }}" method="POST">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="editModalLabel{{ $karyawan->user_id }}">Edit Karyawan</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Nama</label>
+                                                            <input type="text" name="name" class="form-control" value="{{ $karyawan->name }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Email</label>
+                                                            <input type="email" name="email" class="form-control" value="{{ $karyawan->email }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">NIK</label>
+                                                            <input type="text" name="nik" class="form-control" value="{{ $karyawan->nik }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Jabatan</label>
+                                                            <select name="jabatan" class="form-control" required>
+                                                                @foreach($jabatanConfigs as $config)
+                                                                    <option value="{{ $config->jabatan }}" @selected($karyawan->jabatan === $config->jabatan)>{{ $config->jabatan }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Gaji</label>
+                                                            <input type="number" name="gaji" class="form-control" value="{{ $karyawan->gaji }}" min="0" step="1" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-primary">Simpan</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
 
                                     <!-- Modal Konfirmasi Hapus -->
                                     <div class="modal fade" id="deleteModal{{ $karyawan->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $karyawan->id }}" aria-hidden="true">

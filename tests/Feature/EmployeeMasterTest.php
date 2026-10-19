@@ -166,4 +166,81 @@ class EmployeeMasterTest extends TestCase
         $response->assertSee('name="gaji"', false);
         $response->assertSee('Staff');
     }
+
+    public function test_admin_can_edit_karyawan_data(): void
+    {
+        $this->staffJabatan();
+        JabatanConfig::create([
+            'jabatan' => 'Kasubag',
+            'level' => 2,
+            'simpanan_wajib' => 150000,
+            'max_potongan_persen' => 50,
+        ]);
+
+        $karyawan = User::create([
+            'name' => 'Budi',
+            'email' => 'budi@gmail.com',
+            'password' => bcrypt('password'),
+            'role' => 'karyawan',
+            'nik' => '1111111111111111',
+            'jabatan' => 'Staff',
+            'gaji' => 3000000,
+        ]);
+
+        $response = $this->actingAs($this->admin())->put(route('karyawan.update', $karyawan->user_id), [
+            'name' => 'Budi Santoso',
+            'email' => 'budi.santoso@gmail.com',
+            'nik' => '2222222222222222',
+            'jabatan' => 'Kasubag',
+            'gaji' => 4000000,
+        ]);
+
+        $response->assertRedirect(route('karyawan.index'));
+        $this->assertDatabaseHas('users', [
+            'user_id' => $karyawan->user_id,
+            'name' => 'Budi Santoso',
+            'email' => 'budi.santoso@gmail.com',
+            'nik' => '2222222222222222',
+            'jabatan' => 'Kasubag',
+            'gaji' => 4000000,
+        ]);
+    }
+
+    public function test_non_admin_cannot_edit_karyawan_data(): void
+    {
+        $this->staffJabatan();
+
+        $karyawan = User::create([
+            'name' => 'Budi',
+            'email' => 'budi@gmail.com',
+            'password' => bcrypt('password'),
+            'role' => 'karyawan',
+            'nik' => '1111111111111111',
+            'jabatan' => 'Staff',
+            'gaji' => 3000000,
+        ]);
+
+        $other = User::create([
+            'name' => 'Siti',
+            'email' => 'siti@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'karyawan',
+            'jabatan' => 'Staff',
+        ]);
+
+        $response = $this->actingAs($other)->put(route('karyawan.update', $karyawan->user_id), [
+            'name' => 'Hacked',
+            'email' => 'budi@gmail.com',
+            'nik' => '1111111111111111',
+            'jabatan' => 'Staff',
+            'gaji' => 999999999,
+        ]);
+
+        $response->assertStatus(302);
+        $this->assertDatabaseHas('users', [
+            'user_id' => $karyawan->user_id,
+            'name' => 'Budi',
+            'gaji' => 3000000,
+        ]);
+    }
 }
