@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\JabatanConfig;
+use App\Models\Piutang;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use charlieuki\ReceiptPrinter\ReceiptPrinter as ReceiptPrinter;
 
 class KasirController extends Controller
@@ -47,7 +51,38 @@ class KasirController extends Controller
 
         $products = $request->input('products');
 
+        // Total is needed up front (before any writes) so a potong_gaji
+        // transaction can be blocked without creating the order/payment.
         $totalAmount = 0;
+        foreach ($products as $product) {
+            $totalAmount += $product['quantity'] * $product['price'];
+        }
+
+        $period = null;
+
+        if ($paymentMethod === 'potong_gaji') {
+            $period = Piutang::periodFor(now());
+            $pegawai = User::find($request->input('user_id'));
+            $jabatanConfig = JabatanConfig::where('jabatan', $pegawai->jabatan)->first();
+
+            // ponytail: accounts predating this feature can have null gaji/jabatan
+            // (spec #3 story 21 — old accounts keep working). There's no limit to
+            // enforce without both, so such accounts are not blocked here.
+            if ($pegawai->gaji !== null && $jabatanConfig !== null) {
+                $existingPiutang = Piutang::where('user_id', $pegawai->user_id)
+                    ->where('status', 'belum_lunas')
+                    ->where('period', $period)
+                    ->sum('amount');
+
+                $limit = $pegawai->gaji * $jabatanConfig->max_potongan_persen / 100;
+
+                if (($existingPiutang + $totalAmount) > $limit) {
+                    throw ValidationException::withMessages([
+                        'payment_method' => 'Transaksi ditolak: melebihi batas maksimum potong gaji pegawai ini untuk periode berjalan.',
+                    ]);
+                }
+            }
+        }
 
         // Process each product (e.g., save the order to the database)
 
@@ -92,8 +127,6 @@ class KasirController extends Controller
                 'unit_price' => $priceProduct,
             ]);
 
-            $totalAmount += $quantityProduct * $priceProduct;
-
             $orderDetails[] = [
                 'product_name' => $existingProduct->product_name,
                 'quantity' => $quantityProduct,
@@ -108,6 +141,17 @@ class KasirController extends Controller
             'payment_amount' => $totalAmount,
             'payment_method' => $paymentMethod,
         ]);
+
+        if ($paymentMethod === 'potong_gaji') {
+            Piutang::create([
+                'user_id' => $request->input('user_id'),
+                'source_type' => 'pembelian',
+                'source_id' => $payment->payment_id,
+                'amount' => $totalAmount,
+                'status' => 'belum_lunas',
+                'period' => $period,
+            ]);
+        }
 
         $receiptData = [
             'store_name' => 'My Store Name',
