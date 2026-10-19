@@ -14,7 +14,7 @@ class PaymentFactory extends Factory
             'order_id' => Order::factory(),
             'payment_date' => $this->faker->dateTimeThisMonth(),
             'payment_amount' => $this->faker->randomFloat(2, 20, 500),
-            'payment_method' => $this->faker->randomElement(['credit_card', 'cash', 'bank_transfer']),
+            'payment_method' => $this->faker->randomElement(['cash', 'qris']),
             'created_at' => now(),
             'updated_at' => now(),
         ];
