@@ -7,10 +7,11 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
 
-            <!-- Form Pembuatan Akun Karyawan -->
-            <div class="card">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">Create Akun Karyawan</h4>
+            <!-- Daftar Akun Karyawan -->
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Daftar Akun Karyawan</h5>
+                    <a href="{{ route('karyawan.create') }}" class="btn btn-primary btn-sm">Tambah Karyawan</a>
                 </div>
                 <div class="card-body">
                     @if(session('success'))
@@ -19,51 +20,6 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('karyawan.index') }}" method="POST">
-                        @csrf
-
-                        <div class="form-group mb-3">
-                            <label for="name" class="form-label">Nama Karyawan</label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" id="name" value="{{ old('name') }}" required>
-                            @error('name')
-                                <span class="invalid-feedback" role="alert">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" id="email" value="{{ old('email') }}" required>
-                            @error('email')
-                                <span class="invalid-feedback" role="alert">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" required>
-                            @error('password')
-                                <span class="invalid-feedback" role="alert">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="password_confirmation" class="form-label">Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control" id="password_confirmation" required>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Create Akun</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Daftar Akun Karyawan -->
-            <div class="card mt-4">
-                <div class="card-header bg-secondary text-white text-center">
-                    <h5 class="mb-0">Daftar Akun Karyawan</h5>
-                </div>
-                <div class="card-body">
                     @if($karyawans->isEmpty())
                         <p class="text-center">Belum ada akun karyawan yang dibuat.</p>
                     @else
@@ -72,8 +28,12 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th>No</th>
+                                    <th>Employee ID</th>
                                     <th>Nama</th>
                                     <th>Email</th>
+                                    <th>NIK</th>
+                                    <th>Jabatan</th>
+                                    <th>Gaji</th>
                                     <th>Dibuat Pada</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -82,8 +42,12 @@
                                 @foreach($karyawans as $index => $karyawan)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
+                                        <td>{{ $karyawan->employee_id ?? '-' }}</td>
                                         <td>{{ $karyawan->name }}</td>
                                         <td>{{ $karyawan->email }}</td>
+                                        <td>{{ $karyawan->nik ?? '-' }}</td>
+                                        <td>{{ $karyawan->jabatan ?? '-' }}</td>
+                                        <td>{{ $karyawan->gaji !== null ? number_format($karyawan->gaji, 0) : '-' }}</td>
                                         <td>{{ $karyawan->created_at->format('d-m-Y H:i') }}</td>
                                         <td>
                                             <button 
