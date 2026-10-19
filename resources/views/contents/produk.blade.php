@@ -275,7 +275,12 @@
                                                 <button class="btn btn-outline-secondary" type="button" onclick="changeValue('harga_jual{{ $product->product_id }}', 1000)">+</button>
                                             </div>
                                         </div>
-                                        
+
+                                        <div class="mb-3">
+                                            <label for="kode_perkiraan{{ $product->product_id }}" class="form-label">Kode Perkiraan (opsional)</label>
+                                            <input type="text" class="form-control" id="kode_perkiraan{{ $product->product_id }}" name="kode_perkiraan" value="{{ $product->kode_perkiraan }}">
+                                        </div>
+
                                         <button type="submit" class="btn btn-primary">Update Produk</button>
                                     </form>
                                 </div>
@@ -373,7 +378,11 @@
                         </div>
                     </div>
 
-                    
+                    <div class="mb-3">
+                        <label for="kode_perkiraan" class="form-label">Kode Perkiraan (opsional)</label>
+                        <input type="text" class="form-control" id="kode_perkiraan" name="kode_perkiraan">
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Simpan Produk</button>
                 </form>
             </div>
