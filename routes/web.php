@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\JabatanConfigController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\ProductController;
@@ -35,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
         Route::delete('/karyawan/{email}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
         Route::get('/produk-terlaris', [DashboardController::class, 'getProdukTerlaris'])->name('dashboard.produkTerlaris');
+        Route::get('/jabatan-config', [JabatanConfigController::class, 'index'])->name('jabatan-config.index');
+        Route::put('/jabatan-config/{jabatanConfig}', [JabatanConfigController::class, 'update'])->name('jabatan-config.update');
     });
 
     Route::get('/kasir', function () {
