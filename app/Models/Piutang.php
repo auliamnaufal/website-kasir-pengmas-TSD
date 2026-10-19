@@ -52,4 +52,28 @@ class Piutang extends Model
             ? $carbon->copy()->addMonth()->format('Y-m')
             : $carbon->format('Y-m');
     }
+
+    /**
+     * Would adding $newAmount to $pegawai's belum_lunas piutang for $period push
+     * them past their jabatan's max_potongan_persen of gaji? A pegawai whose
+     * gaji or jabatan_configs row isn't set up fails closed (treated as
+     * exceeding) rather than being exempted from the check.
+     */
+    public static function wouldExceedLimit(User $pegawai, string $period, float $newAmount): bool
+    {
+        $jabatanConfig = $pegawai->jabatanConfig;
+
+        if ($pegawai->gaji === null || $jabatanConfig === null) {
+            return true;
+        }
+
+        $existingPiutang = static::where('user_id', $pegawai->user_id)
+            ->where('status', 'belum_lunas')
+            ->where('period', $period)
+            ->sum('amount');
+
+        $limit = $pegawai->gaji * $jabatanConfig->max_potongan_persen / 100;
+
+        return ($existingPiutang + $newAmount) > $limit;
+    }
 }

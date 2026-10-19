@@ -40,11 +40,18 @@ class User extends Authenticatable
         });
     }
 
+    // This user's jabatan_configs row, matched by jabatan name (jabatan_configs
+    // has no foreign-id column to key off of).
+    public function jabatanConfig()
+    {
+        return $this->hasOne(JabatanConfig::class, 'jabatan', 'jabatan');
+    }
+
     // Hierarchy level of this user's jabatan, per jabatan_configs. Missing/unconfigured
     // jabatan is treated as the lowest rung (0), never as "unrestricted".
     public function jabatanLevel(): int
     {
-        return (int) (JabatanConfig::where('jabatan', $this->jabatan)->value('level') ?? 0);
+        return (int) ($this->jabatanConfig?->level ?? 0);
     }
 
     public function getHomeRouteAttribute()

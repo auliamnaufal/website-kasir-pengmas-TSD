@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\JabatanConfig;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -83,11 +84,19 @@ class KasirPaymentTest extends TestCase
     public function test_potong_gaji_payment_succeeds_with_a_pegawai_selected(): void
     {
         $product = $this->makeProduct();
+        JabatanConfig::create([
+            'jabatan' => 'Staff',
+            'level' => 1,
+            'simpanan_wajib' => 100000,
+            'max_potongan_persen' => 50,
+        ]);
         $pegawai = User::create([
             'name' => 'Karyawan Satu',
             'email' => 'karyawan1@example.com',
             'password' => 'secret',
             'role' => 'karyawan',
+            'jabatan' => 'Staff',
+            'gaji' => 1000000,
         ]);
 
         $response = $this->postJson(route('kasir.prosespembayaran'), [

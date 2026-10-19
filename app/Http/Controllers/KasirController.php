@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\JabatanConfig;
 use App\Models\Piutang;
 use App\Models\Product;
 use App\Models\Order;
@@ -49,6 +48,7 @@ class KasirController extends Controller
             'Pembayaran Potong Gaji' => 'potong_gaji',
         };
 
+        $userId = $request->input('user_id');
         $products = $request->input('products');
 
         // Total is needed up front (before any writes) so a potong_gaji
@@ -62,25 +62,12 @@ class KasirController extends Controller
 
         if ($paymentMethod === 'potong_gaji') {
             $period = Piutang::periodFor(now());
-            $pegawai = User::find($request->input('user_id'));
-            $jabatanConfig = JabatanConfig::where('jabatan', $pegawai->jabatan)->first();
+            $pegawai = User::find($userId);
 
-            // ponytail: accounts predating this feature can have null gaji/jabatan
-            // (spec #3 story 21 — old accounts keep working). There's no limit to
-            // enforce without both, so such accounts are not blocked here.
-            if ($pegawai->gaji !== null && $jabatanConfig !== null) {
-                $existingPiutang = Piutang::where('user_id', $pegawai->user_id)
-                    ->where('status', 'belum_lunas')
-                    ->where('period', $period)
-                    ->sum('amount');
-
-                $limit = $pegawai->gaji * $jabatanConfig->max_potongan_persen / 100;
-
-                if (($existingPiutang + $totalAmount) > $limit) {
-                    throw ValidationException::withMessages([
-                        'payment_method' => 'Transaksi ditolak: melebihi batas maksimum potong gaji pegawai ini untuk periode berjalan.',
-                    ]);
-                }
+            if (Piutang::wouldExceedLimit($pegawai, $period, $totalAmount)) {
+                throw ValidationException::withMessages([
+                    'payment_method' => 'Transaksi ditolak: melebihi batas maksimum potong gaji pegawai ini untuk periode berjalan.',
+                ]);
             }
         }
 
@@ -88,7 +75,7 @@ class KasirController extends Controller
 
         $order = Order::create([
             'order_date' => now(),
-            'user_id' => $request->input('user_id'),
+            'user_id' => $userId,
         ]);
 
         foreach ($products as $product) {
@@ -144,7 +131,7 @@ class KasirController extends Controller
 
         if ($paymentMethod === 'potong_gaji') {
             Piutang::create([
-                'user_id' => $request->input('user_id'),
+                'user_id' => $userId,
                 'source_type' => 'pembelian',
                 'source_id' => $payment->payment_id,
                 'amount' => $totalAmount,

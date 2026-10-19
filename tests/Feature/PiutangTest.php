@@ -183,13 +183,26 @@ class PiutangTest extends TestCase
         $this->assertDatabaseCount('payments', 0);
     }
 
-    public function test_pegawai_without_gaji_or_jabatan_is_not_blocked(): void
+    public function test_pegawai_without_gaji_or_jabatan_is_rejected(): void
     {
-        // Spec #3 story 21: accounts predating this feature (nullable gaji/jabatan)
-        // keep working — there's no limit to enforce without both.
+        // A pegawai whose sufficiency can't be verified (no gaji and/or no
+        // jabatan_configs row) fails closed — rejected, not exempted.
         $pegawai = $this->makePegawai(null, null);
 
-        $response = $this->bayarPotongGaji($pegawai, 999999999);
+        $response = $this->bayarPotongGaji($pegawai, 100000);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('payment_method');
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('payments', 0);
+    }
+
+    public function test_pegawai_with_gaji_and_jabatan_configured_is_unaffected(): void
+    {
+        $this->makeJabatanConfig('Staff', 50); // limit = 500,000
+        $pegawai = $this->makePegawai('Staff', 1000000);
+
+        $response = $this->bayarPotongGaji($pegawai, 100000);
 
         $response->assertOk();
     }
