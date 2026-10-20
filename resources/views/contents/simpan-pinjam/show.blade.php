@@ -103,7 +103,7 @@
                             <thead>
                                 <tr>
                                     <th>Ke</th><th>Jatuh Tempo</th><th>Pokok</th><th>Bunga</th><th>Total</th>
-                                    <th>Sisa Pokok</th><th>Sisa Bunga</th><th>Status</th><th>Aksi</th>
+                                    <th>Sisa Pokok</th><th>Sisa Bunga</th><th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -122,16 +122,14 @@
                                                 <span class="badge badge-success">Lunas {{ $angsuran->dibayar_pada->format('d/m/Y') }}</span>
                                             @elseif ($angsuran->status === 'pelunasan')
                                                 <span class="badge badge-secondary">Ditutup pelunasan</span>
-                                            @else
-                                                <span class="badge badge-warning">Belum lunas</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($pinjaman->status === 'aktif' && $berikutnya && $berikutnya->id === $angsuran->id)
+                                            @elseif ($pinjaman->status === 'aktif' && $berikutnya && $berikutnya->id === $angsuran->id)
+                                                {{-- Tombol di kolom status, bukan kolom sendiri: tabelnya sudah lebar dan kolom ekstra terdorong ke luar layar. --}}
                                                 <form action="{{ route('simpan-pinjam.bayar-angsuran', $angsuran) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-success text-white">Bayar</button>
                                                 </form>
+                                            @else
+                                                <span class="badge badge-warning">Belum lunas</span>
                                             @endif
                                         </td>
                                     </tr>
