@@ -132,6 +132,35 @@
     </div>
 
 
+    <!-- Omset per Unit Usaha (hari ini) -->
+    <div class="row">
+        <div class="col-md-12 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-title">Omset Hari Ini per Unit Usaha</p>
+                    <div class="table-responsive pt-2">
+                        <table class="table table-striped" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Unit</th>
+                                    <th>Omset</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($omsetPerUnit as $unit)
+                                <tr>
+                                    <td>{{ $unit['nama'] }}</td>
+                                    <td>Rp{{ number_format($unit['omset'], 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabel Transaksi Hari Ini -->
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
