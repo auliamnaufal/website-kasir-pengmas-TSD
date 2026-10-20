@@ -8,6 +8,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\PiutangController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SimpananController;
+use App\Http\Controllers\SimpanPinjamController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -45,6 +47,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/jabatan-config', [JabatanConfigController::class, 'index'])->name('jabatan-config.index');
         Route::put('/jabatan-config/{jabatanConfig}', [JabatanConfigController::class, 'update'])->name('jabatan-config.update');
         Route::put('/piutang/{piutang}/tandai-lunas', [PiutangController::class, 'tandaiLunas'])->name('piutang.tandai-lunas');
+
+        // Unit Simpan Pinjam (P2 / issue #1)
+        Route::get('/simpan-pinjam', [SimpanPinjamController::class, 'index'])->name('simpan-pinjam.index');
+        Route::post('/simpan-pinjam', [SimpanPinjamController::class, 'store'])->name('simpan-pinjam.store');
+        Route::get('/simpan-pinjam/laporan', [SimpanPinjamController::class, 'laporan'])->name('simpan-pinjam.laporan');
+        Route::get('/simpan-pinjam/{pinjaman}', [SimpanPinjamController::class, 'show'])->whereNumber('pinjaman')->name('simpan-pinjam.show');
+        Route::post('/simpan-pinjam/{pinjaman}/pelunasan', [SimpanPinjamController::class, 'lunasi'])->whereNumber('pinjaman')->name('simpan-pinjam.lunasi');
+        Route::get('/simpan-pinjam/{pinjaman}/invoice', [SimpanPinjamController::class, 'invoice'])->whereNumber('pinjaman')->name('simpan-pinjam.invoice');
+        Route::post('/simpan-pinjam/angsuran/{angsuran}/bayar', [SimpanPinjamController::class, 'bayarAngsuran'])->name('simpan-pinjam.bayar-angsuran');
+        Route::get('/simpanan', [SimpananController::class, 'index'])->name('simpanan.index');
+        Route::post('/simpanan/wajib', [SimpananController::class, 'generateWajib'])->name('simpanan.generate-wajib');
+        Route::post('/simpanan/sukarela', [SimpananController::class, 'storeSukarela'])->name('simpanan.sukarela');
     });
 
     Route::get('/kasir', function () {
