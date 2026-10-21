@@ -125,6 +125,18 @@
                             <span class="menu-title">Konfigurasi Jabatan</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('simpan-pinjam.index') }}">
+                            <i class="icon-columns menu-icon mdi mdi-bank"></i>
+                            <span class="menu-title">Simpan Pinjam</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('simpanan.index') }}">
+                            <i class="icon-columns menu-icon mdi mdi-wallet"></i>
+                            <span class="menu-title">Simpanan</span>
+                        </a>
+                    </li>
                     @endif
 
                     <!-- Sidebar for Karyawan -->

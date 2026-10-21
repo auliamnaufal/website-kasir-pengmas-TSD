@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PinjamanAngsuran;
 use App\Models\Piutang;
+use App\Services\PinjamanService;
 use Illuminate\Validation\ValidationException;
 
 class PiutangController extends Controller
@@ -11,12 +13,21 @@ class PiutangController extends Controller
     // Piutang yang sudah lunas tidak bisa ditandai ulang: settled_at/settled_by adalah jejak
     // audit siapa & kapan pertama kali melunasi (spec #3 story 18), jadi direject (422)
     // alih-alih ditimpa diam-diam oleh klik kedua.
-    public function tandaiLunas(Piutang $piutang)
+    public function tandaiLunas(Piutang $piutang, PinjamanService $pinjamanService)
     {
         if ($piutang->status === 'lunas') {
             throw ValidationException::withMessages([
                 'status' => 'Piutang ini sudah ditandai lunas sebelumnya.',
             ]);
+        }
+
+        // Piutang angsuran pinjaman (P2): lunasi lewat PinjamanService supaya angsuran
+        // dan status pinjamannya ikut berubah, dan urutan angsuran tetap dijaga.
+        if ($piutang->source_type === 'pinjaman') {
+            $angsuran = PinjamanAngsuran::findOrFail($piutang->source_id);
+            $pinjamanService->bayarAngsuran($angsuran, auth()->user());
+
+            return redirect()->back()->with('success', 'Piutang dan angsuran pinjaman berhasil ditandai lunas.');
         }
 
         $piutang->update([
