@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\Laporan\KreditUnitLaporan;
+use App\Services\Laporan\PosUnitLaporan;
+use App\Services\Laporan\SimpanPinjamUnitLaporan;
+use App\Services\LaporanService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -13,7 +17,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Unit usaha yang ikut laporan lintas unit. Unit baru cukup menambah
+        // kelasnya ke daftar tag ini.
+        $this->app->tag([
+            PosUnitLaporan::class,
+            SimpanPinjamUnitLaporan::class,
+            KreditUnitLaporan::class,
+        ], 'laporan.unit');
+        $this->app->bind(LaporanService::class, fn ($app) => new LaporanService($app->tagged('laporan.unit')));
     }
 
     /**

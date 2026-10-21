@@ -132,6 +132,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('kredit.index') }}">
+                            <i class="icon-columns menu-icon mdi mdi-cart-outline"></i>
+                            <span class="menu-title">Kredit Pertokoan</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('simpanan.index') }}">
                             <i class="icon-columns menu-icon mdi mdi-wallet"></i>
                             <span class="menu-title">Simpanan</span>

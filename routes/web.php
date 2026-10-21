@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\KreditController;
 use App\Http\Controllers\JabatanConfigController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KasirController;
@@ -56,6 +57,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/simpan-pinjam/{pinjaman}/pelunasan', [SimpanPinjamController::class, 'lunasi'])->whereNumber('pinjaman')->name('simpan-pinjam.lunasi');
         Route::get('/simpan-pinjam/{pinjaman}/invoice', [SimpanPinjamController::class, 'invoice'])->whereNumber('pinjaman')->name('simpan-pinjam.invoice');
         Route::post('/simpan-pinjam/angsuran/{angsuran}/bayar', [SimpanPinjamController::class, 'bayarAngsuran'])->name('simpan-pinjam.bayar-angsuran');
+        // Unit Kredit Pertokoan (P3 / issue #2)
+        Route::get('/kredit', [KreditController::class, 'index'])->name('kredit.index');
+        Route::post('/kredit', [KreditController::class, 'store'])->name('kredit.store');
+        Route::get('/kredit/laporan', [KreditController::class, 'laporan'])->name('kredit.laporan');
+        Route::get('/kredit/{kredit}', [KreditController::class, 'show'])->whereNumber('kredit')->name('kredit.show');
+        Route::post('/kredit/{kredit}/pelunasan', [KreditController::class, 'lunasi'])->whereNumber('kredit')->name('kredit.lunasi');
+        Route::get('/kredit/{kredit}/invoice', [KreditController::class, 'invoice'])->whereNumber('kredit')->name('kredit.invoice');
+        Route::post('/kredit/angsuran/{angsuran}/bayar', [KreditController::class, 'bayarAngsuran'])->name('kredit.bayar-angsuran');
+
         Route::get('/simpanan', [SimpananController::class, 'index'])->name('simpanan.index');
         Route::post('/simpanan/wajib', [SimpananController::class, 'generateWajib'])->name('simpanan.generate-wajib');
         Route::post('/simpanan/sukarela', [SimpananController::class, 'storeSukarela'])->name('simpanan.sukarela');

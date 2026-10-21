@@ -15,5 +15,10 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             OrderSeeder::class,
         ]);
+
+        // Data demo QA (simpanan, simpan pinjam, kredit). Tidak untuk produksi.
+        if (! app()->environment('production')) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }
