@@ -50,6 +50,9 @@ class KreditPlafonService
      * Catat pengajuan kredit. Otomatis ditolak (status `ditolak`) bila pokok
      * melewati sisa plafon tahunan; kredit ditolak tidak memakai plafon.
      *
+     * @param  array<string, mixed>  $tambahan  atribut kredit lain yang ikut disimpan
+     *                                          (metode bayar, parameter jadwal, dst.)
+     *
      * @throws InvalidArgumentException bila pokok <= 0 atau tenor di luar rentang
      */
     public function ajukan(
@@ -58,6 +61,7 @@ class KreditPlafonService
         float $pokok,
         int $tenor,
         CarbonInterface $tanggal,
+        array $tambahan = [],
     ): KreditBarang {
         if ($pokok <= 0) {
             throw new InvalidArgumentException('Pokok kredit harus lebih dari 0.');
@@ -69,7 +73,7 @@ class KreditPlafonService
             throw new InvalidArgumentException("Tenor harus antara {$tenorMin} dan {$tenorMax} bulan.");
         }
 
-        return DB::transaction(function () use ($anggota, $namaBarang, $pokok, $tenor, $tanggal) {
+        return DB::transaction(function () use ($anggota, $namaBarang, $pokok, $tenor, $tanggal, $tambahan) {
             // Kunci baris anggota supaya dua pengajuan bersamaan tidak sama-sama
             // lolos membaca sisa plafon yang sama.
             User::where('user_id', $anggota->user_id)->lockForUpdate()->first();
@@ -87,9 +91,15 @@ class KreditPlafonService
                 'tanggal_pengajuan' => $tanggal->toDateString(),
                 'status' => $ditolak ? 'ditolak' : 'disetujui',
                 'alasan_penolakan' => $ditolak
-                    ? 'Melebihi plafon tahunan. Sisa plafon Rp'.number_format($sisa, 0, ',', '.')
+                    ? $this->alasanMelebihiPlafon($sisa)
                     : null,
-            ]);
+            ] + $tambahan); // field inti di atas tidak bisa ditimpa $tambahan
         });
+    }
+
+    /** Teks alasan penolakan plafon; dipakai juga oleh simulasi supaya pesannya sama. */
+    public function alasanMelebihiPlafon(float $sisa): string
+    {
+        return 'Melebihi plafon tahunan. Sisa plafon Rp'.number_format($sisa, 0, ',', '.');
     }
 }

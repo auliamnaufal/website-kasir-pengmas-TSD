@@ -170,7 +170,7 @@ class LaporanTest extends TestCase
         $this->assertEquals(2, $tujuhHari[0]->total_terjual);
     }
 
-    public function test_omset_per_unit_memuat_toko_dan_rentang_inklusif(): void
+    public function test_omset_per_unit_memuat_semua_unit_dan_rentang_inklusif(): void
     {
         $this->buatTransaksi('2026-03-01 00:00:00', 1);
         $this->buatTransaksi('2026-03-31 23:30:00', 1); // hari terakhir tetap ikut
@@ -178,7 +178,12 @@ class LaporanTest extends TestCase
 
         $unit = $this->laporan()->omsetPerUnit(Carbon::parse('2026-03-01'), Carbon::parse('2026-03-31'));
 
-        $this->assertSame([['nama' => 'Toko (Kasir)', 'omset' => 20000.0]], $unit);
+        // Toko berisi dua transaksi di rentang; simpan pinjam dan kredit kosong, tapi tetap terdaftar.
+        $this->assertSame([
+            ['nama' => 'Toko (Kasir)', 'omset' => 20000.0],
+            ['nama' => 'Simpan Pinjam', 'omset' => 0.0],
+            ['nama' => 'Kredit Pertokoan', 'omset' => 0.0],
+        ], $unit);
     }
 
     public function test_unit_baru_cukup_mengimplementasikan_interface(): void

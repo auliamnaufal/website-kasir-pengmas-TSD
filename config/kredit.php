@@ -16,7 +16,18 @@ return [
     // Administrasi dipotong sekali per pinjaman, persen dari pokok.
     'administrasi_persen' => env('KREDIT_ADMINISTRASI_PERSEN', 2),
 
-    // Bunga persen dari pokok. Flat vs efektif dan bunga sampai bulan ke-11
-    // masih open question; rumusnya dikerjakan mesin angsuran P2.
+    // Bunga persen per bulan.
     'bunga_persen' => env('KREDIT_BUNGA_PERSEN', 1),
+
+    // Open question #1: 'flat' (dari pokok awal) atau 'efektif' (dari sisa pokok).
+    'metode_bunga' => env('KREDIT_METODE_BUNGA', 'flat'),
+
+    // Bunga hanya dihitung sampai bulan ke-n; bulan sesudahnya bunganya 0.
+    // Aturan klien: tenor 12 bulan dihitung bunga sampai bulan ke-11. Tenor
+    // 10–11 tidak terpengaruh. Kosongkan (null) untuk bunga sepanjang tenor.
+    'bunga_sampai_bulan' => env('KREDIT_BUNGA_SAMPAI_BULAN', 11),
+
+    // Open question #2: pelunasan sebelum bulan ini tetap ditagih bunga sampai
+    // bulan ini (bunga bulan berikutnya dibebaskan). Sama dengan default P2.
+    'bulan_bunga_minimum' => env('KREDIT_BULAN_BUNGA_MINIMUM', 10),
 ];
