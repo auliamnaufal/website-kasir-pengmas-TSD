@@ -38,9 +38,9 @@
                     administrasi {{ config('kredit.administrasi_persen') }}%.
                 </p>
                 <form action="{{ route('kredit.index') }}" method="GET">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="user_id" class="form-label">Anggota</label>
-                        <select name="user_id" id="user_id" class="form-control" required>
+                        <select name="user_id" id="user_id" class="form-select" required>
                             <option value="">Pilih anggota</option>
                             @foreach ($anggota as $user)
                                 <option value="{{ $user->user_id }}" @selected(request('user_id') == $user->user_id)>
@@ -49,23 +49,23 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="nama_barang" class="form-label">Nama Barang</label>
                         <input type="text" name="nama_barang" id="nama_barang" class="form-control" maxlength="255" value="{{ request('nama_barang') }}" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="pokok" class="form-label">Harga Barang / Pokok Kredit (Rp)</label>
                         <input type="number" name="pokok" id="pokok" class="form-control" min="1" step="1" value="{{ request('pokok') }}" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="tenor" class="form-label">Tenor (bulan)</label>
                         <input type="number" name="tenor" id="tenor" class="form-control"
                             min="{{ config('kredit.tenor_min') }}" max="{{ config('kredit.tenor_max') }}"
                             value="{{ request('tenor', config('kredit.tenor_min')) }}" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="metode_bayar" class="form-label">Metode Bayar</label>
-                        <select name="metode_bayar" id="metode_bayar" class="form-control" required>
+                        <select name="metode_bayar" id="metode_bayar" class="form-select" required>
                             <option value="potong_gaji" @selected(request('metode_bayar') === 'potong_gaji')>Potong gaji</option>
                             <option value="bayar_sendiri" @selected(request('metode_bayar') === 'bayar_sendiri')>Bayar sendiri</option>
                         </select>
