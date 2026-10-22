@@ -44,7 +44,7 @@
                 <form action="{{ route('simpanan.sukarela') }}" method="POST">
                     @csrf
                     <div class="mb-2">
-                        <select name="user_id" class="form-control" required>
+                        <select name="user_id" class="form-select" required>
                             <option value="">Pilih anggota</option>
                             @foreach ($anggota as $baris)
                                 <option value="{{ $baris['user']->user_id }}">{{ $baris['user']->employee_id }} — {{ $baris['user']->name }}</option>
