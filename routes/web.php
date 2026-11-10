@@ -72,7 +72,23 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('/kasir', function () {
-        return view('contents.kasir');
+        // Pegawai yang bisa dipilih untuk "Pembayaran Potong Gaji", beserta sisa batas potongan periode berjalan.
+        $periode = \App\Models\Piutang::periodFor(now());
+        $pegawaiPotongGaji = \App\Models\User::with('jabatanConfig')
+            ->whereNotNull('gaji')
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($u) => [
+                'user_id' => $u->user_id,
+                'nama' => $u->name,
+                'employee_id' => $u->employee_id,
+                'jabatan' => $u->jabatan,
+                'sisa_batas' => \App\Models\Piutang::sisaBatas($u, $periode),
+            ])
+            ->filter(fn ($p) => $p['sisa_batas'] !== null)
+            ->values();
+
+        return view('contents.kasir', compact('pegawaiPotongGaji', 'periode'));
     })->name('kasir.index');
 
     Route::prefix('kelola')->group(function () {

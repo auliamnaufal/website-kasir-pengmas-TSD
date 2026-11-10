@@ -40,6 +40,18 @@
                 max-width: 80px;
             }
         }
+
+        /* Samakan dropdown dengan input .form-control template (ukuran teks, tinggi, warna) */
+        select.form-select {
+            font-size: 0.875rem;
+            line-height: 1.4;
+            height: auto;
+            padding: 1.125rem 2.75rem 1.125rem 1.375rem;
+            background-position: right 1.375rem center;
+            border: 1px solid #CED4DA;
+            outline: 0;
+            color: #1f1f1f;
+        }
     </style>
 </head>
 

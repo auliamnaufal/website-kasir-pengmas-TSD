@@ -103,7 +103,31 @@
                                     Pembayaran Tunai
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#" id="potong_gaji" value="potong_gaji">
+                                    <i class="mdi mdi-account-cash me-2" style="font-size: 24px; width: 30px; text-align: center;"></i>
+                                    Pembayaran Potong Gaji
+                                </a>
+                            </li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Pilih pegawai (hanya untuk Potong Gaji) -->
+                <div class="mt-3 d-flex justify-content-end" id="pegawai-wrapper" style="display: none !important;">
+                    <div class="col-lg-4">
+                        <div class="form-group mb-1">
+                            <label for="pegawai-select">Pegawai yang dipotong gajinya</label>
+                            <select id="pegawai-select" class="form-select">
+                                <option value="">-- Pilih pegawai --</option>
+                                @foreach($pegawaiPotongGaji as $p)
+                                    <option value="{{ $p['user_id'] }}" data-nama="{{ $p['nama'] }}" data-sisa="{{ (int) $p['sisa_batas'] }}">
+                                        {{ $p['nama'] }} ({{ $p['employee_id'] ?? '-' }}, {{ $p['jabatan'] }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <small class="text-muted" id="pegawai-sisa">Periode potong gaji: {{ $periode }}</small>
                     </div>
                 </div>
 
@@ -152,6 +176,7 @@
                     <div>
                         <h4 class="font-weight-bold text-end">Total Pembayaran: <span id="receiptTotal"></span></h5>
                         <h5 class="text-end">Metode Pembayaran: <span id="receiptPaymentMethod"></span></h6>
+                        <h6 class="text-end" id="receiptPegawaiRow" style="display: none;">Dipotong dari gaji: <span id="receiptPegawai"></span></h6>
                     </div>
                 </div>
                 <!-- Footer -->
@@ -225,6 +250,7 @@
 
             // Perbarui total pembayaran
             document.getElementById('total-payment').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            updatePegawaiInfo(); // warna "sisa batas" ikut total terbaru
         }
 
         // Ambil elemen tombol dan dropdown
@@ -237,13 +263,49 @@
         }
 
 
+        const pegawaiWrapper = document.getElementById('pegawai-wrapper');
+        const pegawaiSelect = document.getElementById('pegawai-select');
+        const pegawaiSisa = document.getElementById('pegawai-sisa');
+        const periodeLabel = 'Periode potong gaji: {{ $periode }}';
+
+        function isPotongGaji() {
+            return paymentDropdown.textContent.trim() === 'Pembayaran Potong Gaji';
+        }
+
+        function updatePegawaiInfo() {
+            const opt = pegawaiSelect.selectedOptions[0];
+            if (!opt || !opt.value) {
+                pegawaiSisa.textContent = periodeLabel;
+                pegawaiSisa.className = 'text-muted';
+                return;
+            }
+            const sisa = parseInt(opt.dataset.sisa);
+            const total = parseInt(document.getElementById('total-payment').textContent.replace(/[^0-9]/g, '')) || 0;
+            pegawaiSisa.textContent = `${periodeLabel} · sisa batas potongan Rp ${sisa.toLocaleString('id-ID')}`;
+            pegawaiSisa.className = total > sisa ? 'text-danger fw-bold' : 'text-success';
+        }
+
+        function setPaymentMethod(method) {
+            paymentDropdown.textContent = method;
+            pegawaiWrapper.style.setProperty('display', isPotongGaji() ? 'flex' : 'none', 'important');
+            updatePegawaiInfo();
+            updatePaymentButtonState();
+        }
+
         function updatePaymentButtonState() {
             let paymentMethodSelected = paymentDropdown.textContent.trim() !== 'Pilih Metode Pembayaran';
             let hasProducts = checkProductInTable();
+            let pegawaiOk = !isPotongGaji() || pegawaiSelect.value !== '';
 
-            // Aktifkan tombol hanya jika metode pembayaran dipilih dan ada produk di tabel
-            processPaymentBtn.disabled = !(paymentMethodSelected && hasProducts);
+            // Aktifkan tombol hanya jika metode pembayaran dipilih, ada produk di tabel,
+            // dan (untuk potong gaji) pegawai sudah dipilih
+            processPaymentBtn.disabled = !(paymentMethodSelected && hasProducts && pegawaiOk);
         }
+
+        pegawaiSelect.addEventListener('change', function () {
+            updatePegawaiInfo();
+            updatePaymentButtonState();
+        });
 
         document.addEventListener('input', function(event) {
             if (event.target.classList.contains('quantity-input')) {
@@ -260,16 +322,19 @@
 
 
         // Event listener untuk pilihan metode pembayaran
-        document.getElementById('qris').addEventListener('click', function() {
-            let paymentMethod = 'Pembayaran QRIS';
-            paymentDropdown.textContent = paymentMethod;
-            updatePaymentButtonState(); // Perbarui status tombol setelah memilih metode
+        document.getElementById('qris').addEventListener('click', function(e) {
+            e.preventDefault();
+            setPaymentMethod('Pembayaran QRIS');
         });
 
-        document.getElementById('cash').addEventListener('click', function() {
-            let paymentMethod = 'Pembayaran Tunai';
-            paymentDropdown.textContent = paymentMethod;
-            updatePaymentButtonState(); // Perbarui status tombol setelah memilih metode
+        document.getElementById('cash').addEventListener('click', function(e) {
+            e.preventDefault();
+            setPaymentMethod('Pembayaran Tunai');
+        });
+
+        document.getElementById('potong_gaji').addEventListener('click', function(e) {
+            e.preventDefault();
+            setPaymentMethod('Pembayaran Potong Gaji');
         });
 
         // Fungsi untuk menghapus isi tabel kasir
@@ -291,8 +356,10 @@
             let totalPayment = document.getElementById('total-payment').textContent;
             document.getElementById('receiptTotal').textContent = totalPayment;
 
-            var myModal = new bootstrap.Modal(document.getElementById('receiptModal'));
-            myModal.show();
+            const potongGaji = isPotongGaji();
+            const pegawaiOpt = pegawaiSelect.selectedOptions[0];
+            document.getElementById('receiptPegawaiRow').style.display = potongGaji ? '' : 'none';
+            document.getElementById('receiptPegawai').textContent = potongGaji && pegawaiOpt ? pegawaiOpt.dataset.nama : '';
 
             let tableRows = document.querySelectorAll('#cashierTable tbody tr');
             products = [];
@@ -313,15 +380,22 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
                         body: JSON.stringify({
                             payment_method: paymentMethod,
+                            user_id: potongGaji ? parseInt(pegawaiSelect.value) : null,
                             products: products
                         })
                     })
                 .then(response => response.json())
                 .then(data => {
+                    if (data.errors) {
+                        // Validasi ditolak (mis. melebihi batas potong gaji): tampilkan alasannya
+                        alert(Object.values(data.errors).flat().join('\n'));
+                        return;
+                    }
                     if (data.success) {
                         console.log('Pembayaran berhasil diproses.');
                         console.log(data.receipt);
@@ -349,22 +423,17 @@
                         // Clear cashier table
                         clearCashierTable();
                         processPaymentBtn.disabled = true
+
+                        // Kurangi sisa batas pegawai di daftar agar transaksi berikutnya memakai angka terbaru
+                        if (potongGaji && pegawaiOpt) {
+                            pegawaiOpt.dataset.sisa = Math.max(0, parseInt(pegawaiOpt.dataset.sisa) - parseInt(data.receipt.total_amount));
+                            updatePegawaiInfo();
+                        }
                     } else {
-                        alert('Terjadi kesalahan saat memproses pembayaran.');
+                        alert(data.message || 'Terjadi kesalahan saat memproses pembayaran.');
                     }
                 })
                 .catch(error => console.error('Error:', error));
-        });
-
-        // Event listener untuk pilihan metode pembayaran
-        document.getElementById('qris').addEventListener('click', function() {
-            let paymentMethod = 'Pembayaran QRIS';
-            document.getElementById('paymentDropdown').textContent = paymentMethod;
-        });
-
-        document.getElementById('cash').addEventListener('click', function() {
-            let paymentMethod = 'Pembayaran Tunai';
-            document.getElementById('paymentDropdown').textContent = paymentMethod;
         });
 
 

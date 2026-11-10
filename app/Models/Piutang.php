@@ -61,10 +61,22 @@ class Piutang extends Model
      */
     public static function wouldExceedLimit(User $pegawai, string $period, float $newAmount): bool
     {
+        $sisa = static::sisaBatas($pegawai, $period);
+
+        return $sisa === null || $newAmount > $sisa;
+    }
+
+    /**
+     * Remaining potong-gaji room for $pegawai in $period (batas - piutang
+     * belum_lunas), never below 0. Null when gaji/jabatan isn't set up — the
+     * same fail-closed case wouldExceedLimit() rejects.
+     */
+    public static function sisaBatas(User $pegawai, string $period): ?float
+    {
         $jabatanConfig = $pegawai->jabatanConfig;
 
         if ($pegawai->gaji === null || $jabatanConfig === null) {
-            return true;
+            return null;
         }
 
         $existingPiutang = static::where('user_id', $pegawai->user_id)
@@ -74,6 +86,6 @@ class Piutang extends Model
 
         $limit = $pegawai->gaji * $jabatanConfig->max_potongan_persen / 100;
 
-        return ($existingPiutang + $newAmount) > $limit;
+        return max(0, $limit - $existingPiutang);
     }
 }

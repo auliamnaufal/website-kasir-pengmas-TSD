@@ -86,7 +86,7 @@
                     <form action="{{ route('simpan-pinjam.lunasi', $pinjaman) }}" method="POST"
                         onsubmit="return confirm('Lunasi pinjaman ini sekarang sebesar {{ $rp($rincianPelunasan->total) }}?')">
                         @csrf
-                        <button type="submit" class="btn btn-warning">Lunasi Sekarang</button>
+                        <button type="submit" class="btn btn-warning mt-3">Lunasi Sekarang</button>
                     </form>
                 </div>
             </div>
