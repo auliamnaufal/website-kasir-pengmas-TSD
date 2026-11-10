@@ -3,9 +3,9 @@
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
 
             <!-- Daftar Akun Karyawan -->
             <div class="card mt-4">
@@ -47,7 +47,7 @@
                                         <td>{{ $karyawan->email }}</td>
                                         <td>{{ $karyawan->nik ?? '-' }}</td>
                                         <td>{{ $karyawan->jabatan ?? '-' }}</td>
-                                        <td>{{ $karyawan->gaji !== null ? number_format($karyawan->gaji, 0) : '-' }}</td>
+                                        <td>{{ $karyawan->gaji !== null ? 'Rp ' . number_format($karyawan->gaji, 0, ',', '.') : '-' }}</td>
                                         <td>{{ $karyawan->created_at->format('d-m-Y H:i') }}</td>
                                         <td>
                                             <button
@@ -59,7 +59,7 @@
                                             <button
                                                 class="btn btn-danger btn-sm"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#deleteModal{{ $karyawan->id }}">
+                                                data-bs-target="#deleteModal{{ $karyawan->user_id }}">
                                                 Hapus
                                             </button>
                                         </td>
@@ -111,11 +111,11 @@
                                     </div>
 
                                     <!-- Modal Konfirmasi Hapus -->
-                                    <div class="modal fade" id="deleteModal{{ $karyawan->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $karyawan->id }}" aria-hidden="true">
+                                    <div class="modal fade" id="deleteModal{{ $karyawan->user_id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $karyawan->user_id }}" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title" id="deleteModalLabel{{ $karyawan->id }}">Konfirmasi Hapus</h5>
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ $karyawan->user_id }}">Konfirmasi Hapus</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -145,20 +145,8 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const deleteModal = document.getElementById('deleteModal');
-    const deleteForm = document.getElementById('deleteForm');
-    const karyawanNameElem = document.getElementById('karyawanName');
-
-    document.querySelectorAll('.btn-danger[data-bs-toggle="modal"]').forEach(button => {
-        button.addEventListener('click', function () {
-            const karyawanId = this.getAttribute('data-id');
-            const karyawanName = this.getAttribute('data-name');
-
-            karyawanNameElem.textContent = karyawanName;
-            deleteForm.action = `/karyawan/${karyawanId}`; // Update form action with dynamic ID
-        });
-    });
-
+    // Tiap karyawan punya modal hapus sendiri (id deleteModal{user_id}) dengan form-nya sendiri,
+    // jadi tidak perlu mengubah action form lewat JavaScript.
     const successMessage = document.getElementById('successMessage');
     if (successMessage) {
         setTimeout(() => successMessage.style.display = 'none', 5000);
