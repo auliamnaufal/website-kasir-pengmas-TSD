@@ -18,7 +18,12 @@ class ProductController extends Controller
     // Ensure that the search term is treated as a string for product_id comparison
     $products = Product::where('product_name', 'LIKE', '%' . $searchTerm . '%')
         ->orWhereRaw("CAST(product_id AS CHAR) LIKE ?", ['%' . $searchTerm . '%'])
-        ->get();
+        ->get()
+        ->map(function (Product $product) {
+            $product->setAttribute('barcode', $product->getBarcodeBase64());
+
+            return $product;
+        });
 
     // Return the search result as JSON
     return response()->json($products);

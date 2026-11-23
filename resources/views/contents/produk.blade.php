@@ -733,7 +733,7 @@
                         let row = document.createElement('tr');
                         row.className = 'product-row';
                         row.innerHTML = `
-                            <td><img src="data:image/png;base64,{{ $product->getBarcodeBase64() }}" alt="Barcode"></td>
+                            <td><img src="data:image/png;base64,${product.barcode}" alt="Barcode"></td>
                             <td>${product.product_name}</td>
                             <td>${product.quantity_in_stock}</td>
                             <td>Rp${parseInt(product.harga_jual).toLocaleString('id-ID')}</td>
@@ -753,6 +753,7 @@
                                 <!-- Tombol Kurang Stok -->
                                 <button class="btn btn-warning btn-sm kurang-stok" data-bs-toggle="modal" data-bs-target="#stokModal" data-mode="kurang" data-kode="${ product.product_id }" data-nama="${ product.product_name }">
                                     Kurang Stok
+                                </button>
                                 <!-- Tombol Print Barcode -->
                                 <button type="button" class="btn btn-primary btn-sm btn-icon-text text-white"
                                     data-bs-toggle="modal" data-bs-target="#printBarcodeModal"
