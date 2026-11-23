@@ -134,15 +134,39 @@
         .struk .barcode img { width: 100%; max-height: 14mm; object-fit: contain; }
 
         @media print {
-            @page { size: 80mm auto; margin: 3mm; }
+            /*
+             * margin 0 mematikan header/footer bawaan dialog cetak
+             * (URL + tanggal) yang dulu ikut tercetak di atas struk.
+             */
+            @page { size: 80mm auto; margin: 0; }
 
             html, body { margin: 0; padding: 0; background: #fff; }
 
-            .struk { width: auto; padding: 0; }
+            /*
+             * @page size:80mm is only a hint: Chrome, driver bawaan, dan
+             * "Save as PDF" sering tetap memakai A4/Letter. Jadi lebar struk
+             * dikunci di sini, bukan dibiarkan auto.
+             */
+            body { width: 72mm; margin: 0 auto; }
 
-            /* Thermal printers are monochrome: keep the badge legible. */
-            .struk .badge { background: #000; color: #fff; }
-            .struk .flag i { background: #000 !important; }
+            .struk {
+                width: 72mm;
+                padding: 4mm 0;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            /* Border tetap tercetak walau "Background graphics" dimatikan. */
+            .struk .flag i { background: none !important; border-top: 3px solid #000; }
+
+            .struk .badge {
+                background: none;
+                color: #000;
+                border: 1px solid #000;
+            }
+
+            /* Barcode jangan ikut melebar mengikuti lebar kertas. */
+            .struk .barcode img { width: 56mm; height: auto; }
         }
     </style>
 
