@@ -143,6 +143,73 @@ Copy that directory off-host periodically. Verify a restore once: `gunzip < dump
 5. `php artisan simpanan:generate-wajib 2026-11` once by hand, confirm rows, then rerun to confirm it skips duplicates.
 6. Confirm `APP_DEBUG=false`: hit a bogus route and check no stack trace is shown.
 
+## 11. Deployed instance (2026-11-23)
+
+What is actually live, versus the generic steps above:
+
+| Item | Value |
+|---|---|
+| URL | `https://kasir.kopkartirtasuci.com` |
+| cPanel user | `kopkart1` (plan `nimbus_plus`, IP `202.155.137.50`) |
+| App path | `/home/kopkart1/apps/kasir` |
+| Docroot | `/home/kopkart1/apps/kasir/public` |
+| Git deployment | cPanel Git Version Control, id `25422544`, branch `main` |
+| PHP | 8.3.37, handler `lsapi`, CLI `/usr/local/bin/php` |
+| Database | `kopkart1_kasir` / user `kopkart1_kasir`, `ALL PRIVILEGES` |
+| Upload limits | `upload_max_filesize=2M`, `post_max_size=8M`, `memory_limit=128M` |
+
+### No SSH on this account
+
+Ports 22/2222/2022/22222 are filtered, so the SSH steps in §1–§7 are replaced by:
+
+1. **Code**: `git_deploy_add` + `git_deploy_deploy` clone/pull straight into
+   `/home/kopkart1/apps/kasir`; the subdomain docroot is then repointed at
+   `apps/kasir/public` (cPanel UAPI requires a *relative* path there).
+   A deploy only does git pull — dependencies and caches are a separate step.
+2. **Composer / artisan**: a one-off PHP file under `public/`, guarded by a random
+   token, executed over HTTPS, then permanently deleted:
+
+```php
+<?php
+if (!hash_equals('<random-token>', (string)($_GET['t'] ?? ''))) { http_response_code(403); exit; }
+set_time_limit(0);
+$base = dirname(__DIR__);
+$env  = 'HOME=/home/kopkart1 COMPOSER_HOME=/home/kopkart1/.composer ';
+$cmds = [
+  $env . 'php -d memory_limit=768M composer.phar install --no-dev --no-interaction --prefer-dist --optimize-autoloader',
+  'php artisan migrate --force',
+  'php artisan db:seed --class=JabatanConfigSeeder --force',
+  'php artisan storage:link',
+  'chmod -R ug+rwX storage bootstrap/cache',
+  'php artisan optimize',
+];
+foreach ($cmds as $c) {
+  echo "\n### $c\n";
+  $out = []; $rc = 0;
+  exec('cd ' . escapeshellarg($base) . ' && ' . $c . ' 2>&1', $out, $rc);
+  echo implode("\n", array_slice($out, -45)), "\nexit=$rc\n";
+  if ($rc !== 0) break;
+}
+```
+
+`HOME` is mandatory — Composer aborts without it. While that file exists it is a
+remote command executor: delete it as soon as the run finishes.
+
+3. **Frontend assets**: `public/build` is zipped locally, uploaded (≤ 2 MB),
+   extracted server-side, then the zip is deleted.
+
+### Cron as deployed
+
+```
+0 1 16 * *   cd /home/kopkart1/apps/kasir && /usr/local/bin/php artisan simpanan:generate-wajib >> /home/kopkart1/apps/kasir/storage/logs/cron.log 2>&1
+15 2 * * *   mysqldump -u kopkart1_kasir -p<PASS> kopkart1_kasir 2>/dev/null | gzip > /home/kopkart1/backups/kasir-$(date +\%F).sql.gz
+```
+
+`simpanan:generate-wajib` was verified by hand for `2026-11`: 1 row written, rerun
+wrote 0. Barcode (`DNS1D`, GD) and invoice PDF (dompdf) both render on the server.
+Cron uses the `MAILTO` variable in the crontab — set it (`set_cron_email`) or output
+stays silent on failure.
+
 ## VPS variant
 
 Same steps, plus:
