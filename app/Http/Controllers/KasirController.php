@@ -9,9 +9,8 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Payment;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use charlieuki\ReceiptPrinter\ReceiptPrinter as ReceiptPrinter;
+use Milon\Barcode\DNS1D;
 
 class KasirController extends Controller
 {
@@ -59,6 +58,7 @@ class KasirController extends Controller
         }
 
         $period = null;
+        $pegawai = null;
 
         if ($paymentMethod === 'potong_gaji') {
             $period = Piutang::periodFor(now());
@@ -141,18 +141,42 @@ class KasirController extends Controller
         }
 
         $receiptData = [
-            'store_name' => 'My Store Name',
-            'store_address' => '123 Example St, City, Country',
+            'nama_toko' => config('kasir.nama_toko'),
+            'situs' => config('kasir.situs'),
+            'alamat' => config('kasir.alamat'),
             'order_id' => $order->order_id,
-            'order_date' => $order->order_date,
+            'order_date' => \Illuminate\Support\Carbon::parse($order->order_date)->format('d/m/Y H:i'),
+            'kasir' => $request->user()?->name ?? '-',
             'payment_method' => $paymentMethod,
+            'metode' => config('kasir.label_metode.' . $paymentMethod, $paymentMethod),
             'total_amount' => $totalAmount,
             'order_details' => $orderDetails,
+            'pegawai' => $pegawai?->name,
+            'periode' => $period,
+            'catatan' => config('kasir.catatan'),
         ];
+
+        // Struk dirender di server supaya pratinjau di modal dan hasil cetak
+        // memakai markup yang sama persis.
+        $receiptData['barcode'] = $this->barcodeFor($order->order_id);
+        $receiptData['html'] = view('contents.struk', $receiptData + ['items' => $orderDetails])->render();
 
         // Return a JSON response indicating success
         return response()->json([
             'success' => true,
             'receipt' => $receiptData,]);
+    }
+
+    /**
+     * Barcode Code128 nomor transaksi. Null bila GD/barcode gagal, supaya
+     * pencetakan struk tidak ikut berhenti.
+     */
+    private function barcodeFor(string $orderId): ?string
+    {
+        try {
+            return (new DNS1D())->getBarcodePNG($orderId, 'C128', 2, 40, [0, 0, 0], true);
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

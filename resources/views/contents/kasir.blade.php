@@ -146,84 +146,23 @@
             <div class="modal-content">
                 <!-- Header -->
                 <div class="modal-header">
-                    <h5 class="modal-title" id="receiptModalLabel">Receipt</h5>
+                    <h5 class="modal-title" id="receiptModalLabel">Struk Pembayaran</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <!-- Body -->
-                <div class="modal-body" id="printable-receipt">
-                    <div class="text-center">
-                        <h2 class="font-weight-bold">My Store Name</h2>
-                        <p>123 Example St, City, Country</p>
-                        <p>{{ \Carbon\Carbon::now()->format('l, d F Y H:i:s') }}</p>
-                    </div>
-                    <hr>
-                    <div>
-                        <h5 class="font-weight-bold">Order Details:</h5>
-                        <div class="table-container-scrollable">
-                            <table id="receiptTable" class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Nama Barang</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="receiptDetails">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <hr>
-                    <div>
-                        <h4 class="font-weight-bold text-end">Total Pembayaran: <span id="receiptTotal"></span></h5>
-                        <h5 class="text-end">Metode Pembayaran: <span id="receiptPaymentMethod"></span></h6>
-                        <h6 class="text-end" id="receiptPegawaiRow" style="display: none;">Dipotong dari gaji: <span id="receiptPegawai"></span></h6>
-                    </div>
-                </div>
+                <!-- Body: diisi markup struk yang dirender server -->
+                <div class="modal-body bg-light" id="printable-receipt"></div>
                 <!-- Footer -->
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary btn-struk">Cetak Struk</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary btn-struk">
+                        <i class="mdi mdi-printer me-1"></i>Cetak Struk
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
 </div>
-
-<style>
-    /* Existing styles */
-    
-    #receiptModal .table-container-scrollable {
-        margin: 0; /* Remove any extra margin */
-        padding: 0; /* Remove padding */
-        overflow-y: auto; /* Ensure scrolling works if necessary */
-    }
-
-    #receiptModal .table {
-        margin-bottom: 0; /* Remove extra space below the table */
-        border-collapse: separate; /* Separate borders for modal-specific table */
-    }
-
-    #receiptModal .table th, 
-    #receiptModal .table td {
-        padding: 5px; /* Reduce padding to minimize gaps */
-        border: none; /* Remove borders for a cleaner look */
-        text-align: left; /* Align text properly */
-    }
-
-    #receiptModal .table th {
-        font-size: 0.9rem; /* Adjust the header font size */
-    }
-
-    #receiptModal .table td {
-        font-size: 0.85rem; /* Adjust the body font size */
-    }
-
-    /* Reduce spacing for modal-specific table container */
-    #receiptModal .modal-body {
-        padding: 10px; /* Reduce padding in the modal body */
-    }
-</style>
 
 <!-- JavaScript -->
 <script>
@@ -350,16 +289,9 @@
         // Event listener untuk tombol Proses Pembayaran
         document.querySelector('.btn-success').addEventListener('click', function() {
             paymentMethod = document.getElementById('paymentDropdown').textContent.trim();
-            document.getElementById('receiptPaymentMethod').textContent = paymentMethod;
-
-            // Perbarui total pembayaran di modal
-            let totalPayment = document.getElementById('total-payment').textContent;
-            document.getElementById('receiptTotal').textContent = totalPayment;
 
             const potongGaji = isPotongGaji();
             const pegawaiOpt = pegawaiSelect.selectedOptions[0];
-            document.getElementById('receiptPegawaiRow').style.display = potongGaji ? '' : 'none';
-            document.getElementById('receiptPegawai').textContent = potongGaji && pegawaiOpt ? pegawaiOpt.dataset.nama : '';
 
             let tableRows = document.querySelectorAll('#cashierTable tbody tr');
             products = [];
@@ -400,21 +332,8 @@
                         console.log('Pembayaran berhasil diproses.');
                         console.log(data.receipt);
                         
-                        // Update receipt modal with server data
-                        let receiptDetails = document.getElementById('receiptDetails');
-                        receiptDetails.innerHTML = ''; // Clear previous receipt details
-
-                        data.receipt.order_details.forEach(item => {
-                            let row = `
-                                <tr>
-                                    <td>
-                                        <div><strong>${item.product_name}</strong></div>
-                                        <div>${item.quantity} x Rp ${parseInt(item.unit_price).toLocaleString('id-ID')}</div>
-                                    </td>
-                                    <td>Rp ${parseInt(item.total_price).toLocaleString('id-ID')}</td>
-                                </tr>`;
-                            receiptDetails.innerHTML += row;
-                        });
+                        // Struk sudah dirender di server: pratinjau = hasil cetak.
+                        document.getElementById('printable-receipt').innerHTML = data.receipt.html;
 
                         // Show the receipt modal
                         var myModal = new bootstrap.Modal(document.getElementById('receiptModal'));
@@ -674,82 +593,30 @@
     });
 
     document.querySelector('.btn-struk').addEventListener('click', function () {
-        const receiptContent = document.getElementById('printable-receipt').outerHTML;
+        const preview = document.getElementById('printable-receipt');
+        const receiptHtml = preview.innerHTML;
+        const orderId = (preview.querySelector('.scan')?.textContent || 'struk').trim();
 
-        // Open a new window or tab
-        const printWindow = window.open('', '_blank');
+        const printWindow = window.open('', '_blank', 'width=380,height=680');
+        if (!printWindow) {
+            alert('Popup diblokir browser. Izinkan popup untuk situs ini agar struk bisa dicetak.');
+            return;
+        }
 
-        // Write the receipt content into the new window
+        // Markup struk (termasuk <style> 80mm-nya) berasal dari server, jadi
+        // pratinjau di modal dan hasil cetak selalu identik.
         printWindow.document.open();
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Receipt</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            margin: 20px;
-                        }
-                        .table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin: 20px 0;
-                        }
-                        .table th, .table td {
-                            border: 1px solid #ddd;
-                            padding: 8px;
-                            text-align: left;
-                        }
-                        .text-center {
-                            text-align: center;
-                        }
-                        .text-end {
-                            text-align: right;
-                        }
-                        .font-weight-bold {
-                            font-weight: bold;
-                        }
-
-                        /* Ensure the content is wider when printing */
-                        @media print {
-                            body {
-                                font-size: 10px; /* Smaller font size */
-                                line-height: 1.2; /* Compact line height */
-                                margin: 5px; /* Maintain consistent margins */
-                            }
-                            #printable-receipt {
-                                font-size: 10px; /* Match the smaller font size */
-                                width: 99%; /* Ensure it fits nicely within the page width */
-                                margin: auto; /* Center the receipt content */
-                                border-bottom: 2px solid #000; 
-                                padding-bottom: 10px; 
-                            }
-                            .table {
-                                font-size: 10px; /* Smaller font for table content */
-                                border-collapse: collapse; /* Remove space between cells */
-                                width: 100%; /* Use full width for the table */
-                            }
-                            .table th, .table td {
-                                padding: 1px; /* Reduce padding to make the table more compact */
-                                border: none; /* Remove borders for a clean look */
-                            }
-                        }
-
-                        #receiptModal .modal-body {
-                            padding: 10px; /* Reduce padding inside the modal */
-                        }
-                        #receiptModal .modal-footer {
-                            padding: 5px; /* Reduce padding in the footer */
-                        }
-                    </style>
-                </head>
-                <body onload="window.print(); window.close();">
-                    ${receiptContent}
-                </body>
-            </html>
-        `);
+        printWindow.document.write(`<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="utf-8">
+        <title>Struk ${orderId}</title>
+        <style>html, body { margin: 0; padding: 0; background: #fff; }</style>
+    </head>
+    <body onload="window.print()">${receiptHtml}</body>
+</html>`);
         printWindow.document.close();
-        });
+    });
 
         document.addEventListener('keydown', function (event) {
             const searchInput = document.getElementById('search-product');

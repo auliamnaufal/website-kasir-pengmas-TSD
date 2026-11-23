@@ -28,7 +28,6 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/search-products', [KasirController::class, 'search'])->name('kasir.search');
 Route::post('/kasir/proses-pembayaran', [KasirController::class, 'prosesPembayaran'])->name('kasir.prosespembayaran');
-Route::post('/kasir/cetak-struk', [KasirController::class, 'cetakStruk'])->name('kasir.cetakstruk');
 
 Route::middleware(['auth'])->group(function () {
 
